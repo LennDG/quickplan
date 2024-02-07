@@ -4,7 +4,7 @@ fn main() -> Result<()> {
     let mut key = [0u8; 64]; // 512 bits = 64 bytes
     rand::thread_rng().fill_bytes(&mut key);
 
-    let b64u = utils::b64u::b64u_encode(key);
+    let b64u = lib_utils::b64u::b64u_encode(key);
     println!("\nKey b64u encoded:\n{b64u}");
     Ok(())
 }

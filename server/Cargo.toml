@@ -6,7 +6,8 @@ unused = "allow"       # For experimental dev.
 resolver = "2"
 members = [
     # -- Application libraries
-    "crates/libs/utils",
+    "crates/libs/lib-utils",
+    "crates/libs/lib-core",
 
     # -- Application Services
     "crates/services/web-server",
@@ -15,3 +16,6 @@ members = [
     "crates/tools/gen-key",
 
 ]
+
+[workspace.dependencies]
+derive_more = { version = "1.0.0-beta", features = ["from", "display"] }

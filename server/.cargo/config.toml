@@ -1,0 +1,24 @@
+# Environment variablse set for all `cargo ...` commands.
+[env]
+
+RUST_LOG = "quickplan=debug"
+
+# -- Service environment variables
+#   For cargo commands
+#   For deployed app, env variablse should be managed by container
+#   e.g. Kubernetes, AppSettings, ...
+#
+
+## -- Secrets
+# Only for localhost
+SERVICE_DB_URL = "postgres://app_user:dev_only_pwd@localhost/app_db"
+SERVICE_PWD_KEY = "izC4ny3NcteWFExRo3AcWD5YimEr7iQGz9XzgJPhj9SL6tKFDB__RTCZSW4vpYO84tfrpaTPE6QvaWa5mMCb1A"
+SERVICE_TOKEN_KEY = "i_uKtl_72r-V_4Zb2xT_dW2R_Nb3LYLQhvgFymDjfifFmbwtr5TxDnua-cpTg9QTp83uI7RoVPCrwYysR9C0oA"
+
+## -- ConfigMap
+# Relative to Cargo.toml for cargo
+# For containers should probably be absolute path
+SERVICE_WEB_FOLDER = "../www/"
+SERVICE_DB_MAX_CONNECTIONS = "5"
+SERVICE_DB_TIMEOUT_MS = "500"
+SERVICE_TOKEN_DURATION_SEC = "1800"

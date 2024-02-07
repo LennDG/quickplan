@@ -1,0 +1,13 @@
+[workspace]
+resolver = "2"
+members = [
+    # -- Application libraries
+    "crates/libs/utils",
+
+    # -- Application Services
+    "crates/services/web-server",
+
+    # -- Tools
+    "crates/tools/gen-key",
+
+]

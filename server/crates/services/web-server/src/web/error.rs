@@ -15,7 +15,7 @@ use crate::web;
 
 pub type Result<T> = core::result::Result<T, Error>;
 
-#[derive(Debug)]
+#[derive(Debug, Serialize, strum_macros::AsRefStr)]
 pub enum Error {
     // -- Middleware
     ReqStampNotInReqExt,
@@ -66,8 +66,6 @@ impl Error {
 #[serde(tag = "message", content = "detail")]
 #[allow(non_camel_case_types)]
 pub enum ClientError {
-    LOGIN_FAIL,
-    NO_AUTH,
     ENTITY_NOT_FOUND { entity: &'static str, id: i64 },
 
     SERVICE_ERROR,

@@ -8,6 +8,9 @@ use lib_core::_dev_utils;
 use tracing_subscriber::EnvFilter;
 
 pub use self::error::{Error, Result};
+use config::web_config;
+
+use crate::web::mw_req_stamp::mw_req_stamp_resolver;
 // endregion: --- Modules
 
 #[tokio::main]

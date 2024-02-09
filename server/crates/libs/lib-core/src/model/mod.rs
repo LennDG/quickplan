@@ -13,7 +13,6 @@
 mod base;
 mod error;
 mod store;
-mod utils;
 
 pub mod plan;
 pub mod plandate;

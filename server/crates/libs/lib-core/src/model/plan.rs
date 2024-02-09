@@ -4,12 +4,11 @@ use serde::Serialize;
 use serde_with::serde_as;
 use sqlx::FromRow;
 use time::OffsetDateTime;
-use tracing::span::Id;
 
 use crate::ctx::Ctx;
 
 use super::{
-    base::{self, DbBmc},
+    base::{self, crud_fns, DbBmc},
     ModelManager,
 };
 use crate::model::{Error, Result};
@@ -28,8 +27,6 @@ pub struct Plan {
     // -- Timestamps
     #[serde_as(as = "Rfc3339")]
     pub ctime: OffsetDateTime,
-    #[serde_as(as = "Rfc3339")]
-    pub mtime: OffsetDateTime,
 }
 
 #[derive(Fields)]
@@ -48,15 +45,23 @@ impl DbBmc for PlanBmc {
 
 impl PlanBmc {
     pub async fn create(ctx: &Ctx, mm: &ModelManager, plan_c: PlanForCreate) -> Result<i64> {
-        base::create::<Self, _>(ctx, mm, plan_c).await
+        crud_fns::create::<Self, _>(ctx, mm, plan_c).await
+    }
+
+    pub async fn create_return(
+        ctx: &Ctx,
+        mm: &ModelManager,
+        plan_c: PlanForCreate,
+    ) -> Result<Plan> {
+        crud_fns::create_return::<Self, _, _>(ctx, mm, plan_c).await
     }
 
     pub async fn get(ctx: &Ctx, mm: &ModelManager, id: i64) -> Result<Plan> {
-        base::get::<Self, _>(ctx, mm, id).await
+        crud_fns::get::<Self, _>(ctx, mm, id).await
     }
 
     pub async fn delete(ctx: &Ctx, mm: &ModelManager, id: i64) -> Result<()> {
-        base::delete::<Self>(ctx, mm, id).await
+        crud_fns::delete::<Self>(ctx, mm, id).await
     }
 }
 
@@ -76,8 +81,8 @@ mod tests {
         // -- Setup & Fixtures
         let mm = _dev_utils::init_test().await;
         let ctx = Ctx::root_ctx();
-        let fx_plan_name = "plan1";
-        let fx_plan_urlid = "planurl";
+        let fx_plan_name = "plan_create_ok";
+        let fx_plan_urlid = "planurl_create_ok";
         let plan_c = PlanForCreate {
             name: fx_plan_name.to_string(),
             urlid: fx_plan_urlid.to_string(),
@@ -92,6 +97,30 @@ mod tests {
 
         // -- Cleanup
         PlanBmc::delete(&ctx, &mm, id).await?;
+
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn test_plan_bmc_create_return_ok() -> Result<()> {
+        // -- Setup & Fixtures
+        let mm = _dev_utils::init_test().await;
+        let ctx = Ctx::root_ctx();
+        let fx_plan_name = "plan_create_return_ok";
+        let fx_plan_urlid = "planurl_create_return_ok";
+        let plan_c = PlanForCreate {
+            name: fx_plan_name.to_string(),
+            urlid: fx_plan_urlid.to_string(),
+        };
+
+        // Exec
+        let plan = PlanBmc::create_return(&ctx, &mm, plan_c).await?;
+
+        // -- Check
+        assert_eq!(fx_plan_name, plan.name);
+
+        // -- Cleanup
+        PlanBmc::delete(&ctx, &mm, plan.id).await?;
 
         Ok(())
     }

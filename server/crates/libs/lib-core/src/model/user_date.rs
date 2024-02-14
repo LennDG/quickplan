@@ -15,9 +15,8 @@ use time::{Date, OffsetDateTime};
 // region:	  --- Plan Date Types
 #[serde_as]
 #[derive(Debug, Clone, Fields, FromRow, Serialize)]
-pub struct PlanDate {
+pub struct UserDate {
     // -- Relations
-    pub plan_id: i64,
     pub user_id: i64,
 
     // -- Properties
@@ -29,15 +28,13 @@ pub struct PlanDate {
 }
 
 #[derive(Fields, Deserialize)]
-pub struct PlanDateForCreate {
-    pub plan_id: i64,
+pub struct UserDateForCreate {
     pub user_id: i64,
     pub date: Date,
 }
 
 #[derive(Deserialize)]
-pub struct PlanDateForCreateMulti {
-    pub plan_id: i64,
+pub struct UserDateForCreateMulti {
     pub user_id: i64,
     pub dates: Vec<Date>,
 }
@@ -45,27 +42,26 @@ pub struct PlanDateForCreateMulti {
 
 // region:	  --- Plan Date Bmc
 
-pub struct PlanDateBmc;
+pub struct UserDateBmc;
 
-impl DbBmc for PlanDateBmc {
-    const TABLE: &'static str = "plan_date";
+impl DbBmc for UserDateBmc {
+    const TABLE: &'static str = "user_date";
 }
 
-impl PlanDateBmc {
-    pub async fn create(ctx: &Ctx, mm: &ModelManager, date_c: PlanDateForCreate) -> Result<i64> {
+impl UserDateBmc {
+    pub async fn create(ctx: &Ctx, mm: &ModelManager, date_c: UserDateForCreate) -> Result<i64> {
         crud_fns::create::<Self, _>(ctx, mm, date_c).await
     }
 
     pub async fn create_multiple(
         ctx: &Ctx,
         mm: &ModelManager,
-        date_c_m: PlanDateForCreateMulti,
+        date_c_m: UserDateForCreateMulti,
     ) -> Result<Vec<i64>> {
         let plan_c_m = date_c_m
             .dates
             .into_iter()
-            .map(|date| PlanDateForCreate {
-                plan_id: date_c_m.plan_id,
+            .map(|date| UserDateForCreate {
                 user_id: date_c_m.user_id,
                 date,
             })
@@ -74,7 +70,7 @@ impl PlanDateBmc {
         crud_fns::create_multiple::<Self, _>(ctx, mm, plan_c_m).await
     }
 
-    pub async fn get(ctx: &Ctx, mm: &ModelManager, id: i64) -> Result<PlanDate> {
+    pub async fn get(ctx: &Ctx, mm: &ModelManager, id: i64) -> Result<UserDate> {
         crud_fns::get::<Self, _>(ctx, mm, id).await
     }
 
@@ -111,7 +107,7 @@ mod tests {
             &mm,
             PlanForCreate {
                 name: "create_multiple_plan_date".to_string(),
-                urlid: "create_multiple_plan_date".to_string(),
+                url_id: "create_multiple_plan_date".to_string(),
             },
         )
         .await?;
@@ -125,8 +121,7 @@ mod tests {
         )
         .await?;
 
-        let date_c_m = PlanDateForCreateMulti {
-            plan_id: fx_plan_id,
+        let date_c_m = UserDateForCreateMulti {
             user_id: fx_user_id,
             dates: vec![
                 Date::from_calendar_date(2024, time::Month::September, 5)?,
@@ -137,11 +132,11 @@ mod tests {
         };
 
         // Exec
-        let ids = PlanDateBmc::create_multiple(&ctx, &mm, date_c_m).await?;
+        let ids = UserDateBmc::create_multiple(&ctx, &mm, date_c_m).await?;
 
         // -- Check
         for id in ids.clone() {
-            PlanDateBmc::get(&ctx, &mm, id).await?;
+            UserDateBmc::get(&ctx, &mm, id).await?;
         }
 
         // -- Cleanup

@@ -1,14 +1,17 @@
 use lib_utils::time::Rfc3339;
-use modql::field::Fields;
+use modql::field::{Fields, HasFields};
+use sea_query::{Expr, Iden, PostgresQueryBuilder, Query};
+use sea_query_binder::SqlxBinder;
 use serde::Serialize;
 use serde_with::serde_as;
-use sqlx::FromRow;
+use sqlx::{FromRow, QueryBuilder};
 use time::OffsetDateTime;
 
-use crate::ctx::Ctx;
+use crate::{ctx::Ctx, model::user::UserBmc};
 
 use super::{
     base::{self, crud_fns, DbBmc},
+    user::UserDates,
     ModelManager,
 };
 use crate::model::{Error, Result};
@@ -22,7 +25,7 @@ pub struct Plan {
 
     // -- Properties
     pub name: String,
-    pub urlid: String,
+    pub url_id: String,
 
     // -- Timestamps
     #[serde_as(as = "Rfc3339")]
@@ -32,7 +35,20 @@ pub struct Plan {
 #[derive(Fields)]
 pub struct PlanForCreate {
     pub name: String,
-    pub urlid: String,
+    pub url_id: String,
+}
+
+pub struct FullPlan {
+    // -- Plan data
+    pub plan: Plan,
+
+    // -- User data
+    pub user_dates: Vec<UserDates>,
+}
+
+#[derive(Iden)]
+pub enum PlanIden {
+    UrlId,
 }
 // endregion: --- Plan Types
 
@@ -63,6 +79,37 @@ impl PlanBmc {
     pub async fn delete(ctx: &Ctx, mm: &ModelManager, id: i64) -> Result<()> {
         crud_fns::delete::<Self>(ctx, mm, id).await
     }
+
+    pub async fn get_plan_by_url(
+        _ctx: &Ctx,
+        url_id: &str,
+        mm: &ModelManager,
+    ) -> Result<Option<Plan>> {
+        let db = mm.db();
+
+        // -- Build Query
+        let mut query = Query::select();
+        query
+            .from(Self::table_ref())
+            .columns(Plan::field_column_refs())
+            .and_where(Expr::col(PlanIden::UrlId).eq(url_id));
+
+        // -- Exec query
+        let (sql, values) = query.build_sqlx(PostgresQueryBuilder);
+        let plan = sqlx::query_as_with::<_, Plan, _>(&sql, values)
+            .fetch_optional(db)
+            .await?;
+
+        Ok(plan)
+    }
+
+    pub async fn get_full_plan(ctx: &Ctx, mm: &ModelManager, id: i64) -> Result<FullPlan> {
+        let db = mm.db();
+
+        // -- Build Query
+
+        todo!()
+    }
 }
 
 // endregion: --- PlanBmc
@@ -85,7 +132,7 @@ mod tests {
         let fx_plan_urlid = "planurl_create_ok";
         let plan_c = PlanForCreate {
             name: fx_plan_name.to_string(),
-            urlid: fx_plan_urlid.to_string(),
+            url_id: fx_plan_urlid.to_string(),
         };
 
         // Exec
@@ -110,7 +157,7 @@ mod tests {
         let fx_plan_urlid = "planurl_create_return_ok";
         let plan_c = PlanForCreate {
             name: fx_plan_name.to_string(),
-            urlid: fx_plan_urlid.to_string(),
+            url_id: fx_plan_urlid.to_string(),
         };
 
         // Exec

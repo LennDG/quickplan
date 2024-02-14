@@ -15,8 +15,8 @@ mod error;
 mod store;
 
 pub mod plan;
-pub mod plandate;
 pub mod user;
+pub mod user_date;
 
 pub use self::error::{Error, Result};
 use self::store::{new_db_pool, Db};

@@ -7,6 +7,7 @@ use time::OffsetDateTime;
 
 use super::{
     base::{crud_fns, DbBmc},
+    user_date::UserDate,
     ModelManager,
 };
 use crate::ctx::Ctx;
@@ -31,6 +32,12 @@ pub struct User {
 pub struct UserForCreate {
     pub plan_id: i64,
     pub name: String,
+}
+
+pub struct UserDates {
+    pub plan_id: i64,
+    pub name: String,
+    pub dates: Vec<UserDate>,
 }
 // endregion: --- User Types
 

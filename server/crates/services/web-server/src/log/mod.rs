@@ -41,8 +41,6 @@ pub async fn log_request(
         http_path: uri.to_string(),
         http_method: http_method.to_string(),
 
-        user_id: ctx.map(|c| c.user_id()),
-
         client_error_type: client_error.map(|e| e.as_ref().to_string()),
 
         error_type,
@@ -63,9 +61,6 @@ struct RequestLogLine {
     timestamp: String, // (Rfc3339)
     time_in: String,   // (Rfc3339)
     duration_ms: f64,
-
-    // -- User and context attributes.
-    user_id: Option<i64>,
 
     // -- http request attributes.
     http_path: String,

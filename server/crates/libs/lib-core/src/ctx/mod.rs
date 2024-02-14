@@ -10,27 +10,25 @@ pub use self::error::{Error, Result};
 /// Going to keep Ctx because you can put anything you want in here
 #[derive(Clone, Debug)]
 pub struct Ctx {
-    user_id: i64,
+    url_id: Option<String>,
 }
 
 // Constructors.
 impl Ctx {
     pub fn root_ctx() -> Self {
-        Ctx { user_id: 0 }
+        Self { url_id: None }
     }
 
-    pub fn new(user_id: i64) -> Result<Self> {
-        if user_id == 0 {
-            Err(Error::CtxCannotNewRootCtx)
-        } else {
-            Ok(Self { user_id })
-        }
+    pub fn new(url_id: &str) -> Result<Self> {
+        Ok(Self {
+            url_id: Some(url_id.to_string()),
+        })
     }
 }
 
 // Property Accessors.
 impl Ctx {
-    pub fn user_id(&self) -> i64 {
-        self.user_id
+    pub fn url_id(&self) -> Option<String> {
+        self.url_id.clone()
     }
 }

@@ -87,7 +87,6 @@ where
         .returning_col(CommonIden::Id);
 
     let columns: Vec<SeaRc<dyn Iden>> = Vec::new();
-    // let mut values: Vec<Vec<SimpleExpr>> = Vec::new();
 
     for d in data {
         // -- Extract fields (name / sea-query value expression)
@@ -97,9 +96,6 @@ where
         query.columns(columns);
         query.values(sea_values);
     }
-
-    // query.columns(columns);
-    // query.values(values)
 
     //-- Exec query
     let (sql, values) = query.build_sqlx(PostgresQueryBuilder);

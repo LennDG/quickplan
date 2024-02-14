@@ -1,24 +1,28 @@
-use std::sync::Arc;
-
+use super::mw_ctx_resolver;
+use crate::web;
 use ::serde::Serialize;
 use axum::{
     http::StatusCode,
     response::{IntoResponse, Response},
 };
+use derive_more::From;
+use std::sync::Arc;
 use tower_cookies::cookie::time::serde;
 use tracing::debug;
 
-// region:	  --- Modules
-use crate::web;
-
-// endregion: --- Modules
-
 pub type Result<T> = core::result::Result<T, Error>;
 
-#[derive(Debug, Serialize, strum_macros::AsRefStr)]
+#[derive(Debug, Serialize, From, strum_macros::AsRefStr)]
 pub enum Error {
     // -- Middleware
     ReqStampNotInReqExt,
+
+    // -- Modules
+    #[from]
+    Html(lib_html::Error),
+
+    #[from]
+    CtxExt(mw_ctx_resolver::CtxExtError),
 }
 
 // region:    --- Error Boilerplate
@@ -71,3 +75,9 @@ pub enum ClientError {
     SERVICE_ERROR,
 }
 // endregion: --- Client Error
+
+// impl From<lib_html::Error> for Error {
+//     fn from(value: lib_html::Error) -> Self {
+//         Self::Html(value)
+//     }
+// }

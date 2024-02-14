@@ -8,6 +8,7 @@ members = [
     # -- Application libraries
     "crates/libs/lib-utils",
     "crates/libs/lib-core",
+    "crates/libs/lib-html",
 
     # -- Application Services
     "crates/services/web-server",

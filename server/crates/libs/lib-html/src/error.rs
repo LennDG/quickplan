@@ -1,18 +1,9 @@
-use derive_more::From;
-use lib_core::model;
+use serde::Serialize;
 
 pub type Result<T> = core::result::Result<T, Error>;
 
-#[derive(Debug, From)]
-pub enum Error {
-    // -- Config
-    ConfigMissingEnv(&'static str),
-    ConfigIncorrectFormat(&'static str),
-
-    // -- Modules
-    #[from]
-    Model(model::Error),
-}
+#[derive(Debug, Serialize)]
+pub enum Error {}
 
 // region:    --- Error Boilerplate
 impl core::fmt::Display for Error {

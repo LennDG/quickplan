@@ -1,0 +1,15 @@
+[package]
+name = "lib-html"
+version = "0.1.0"
+edition = "2021"
+
+[lints]
+workspace = true
+
+[dependencies]
+maud = { version = "0.26", features = ["axum"] }
+axum = "0.7"
+serde = { version = "1", features = ["derive"] }
+
+[dev-dependencies]
+anyhow = "1"

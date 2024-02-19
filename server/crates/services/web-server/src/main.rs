@@ -4,7 +4,12 @@ mod error;
 mod log;
 mod web;
 
-use axum::{middleware, Router};
+use axum::{
+    http::StatusCode,
+    middleware,
+    response::{IntoResponse, Response},
+    Router,
+};
 use lib_core::{_dev_utils, model::ModelManager};
 use tokio::net::TcpListener;
 use tracing::info;
@@ -12,7 +17,7 @@ use tracing_subscriber::EnvFilter;
 
 use crate::web::{
     mw_ctx_resolver::mw_ctx_resolver, mw_req_stamp::mw_req_stamp_resolver,
-    mw_res_map::mw_response_map, routes::routes,
+    mw_res_map::mw_response_map, routes, routes_static,
 };
 
 pub use self::error::{Error, Result};
@@ -35,10 +40,11 @@ async fn main() -> Result<()> {
 
     // -- Define Routes
     let routes_all = Router::new()
-        .merge(routes(mm.clone()))
+        .merge(web::routes::routes(mm.clone()))
         .layer(middleware::map_response(mw_response_map))
-        .layer(middleware::from_fn_with_state(mm.clone(), mw_ctx_resolver))
-        .layer(middleware::from_fn(mw_req_stamp_resolver));
+        //.layer(middleware::from_fn_with_state(mm.clone(), mw_ctx_resolver))
+        .layer(middleware::from_fn(mw_req_stamp_resolver))
+        .fallback_service(routes_static::not_found());
 
     // region:    --- Start Server
     // Note: For this block, ok to unwrap.

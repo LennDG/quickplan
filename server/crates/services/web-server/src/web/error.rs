@@ -6,6 +6,7 @@ use axum::{
     response::{IntoResponse, Response},
 };
 use derive_more::From;
+use lib_core::model;
 use std::sync::Arc;
 use tower_cookies::cookie::time::serde;
 use tracing::debug;
@@ -23,6 +24,9 @@ pub enum Error {
 
     #[from]
     CtxExt(mw_ctx_resolver::CtxExtError),
+
+    #[from]
+    Model(model::Error),
 }
 
 // region:    --- Error Boilerplate

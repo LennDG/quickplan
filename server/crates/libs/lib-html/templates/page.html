@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" type="text/css" href="/main.css">
+    <link href="https://rsms.me/inter/inter.css" rel="stylesheet" />
+    <base href="/">
+    <script src="https://unpkg.com/htmx.org@1.9.10/dist/htmx.min.js"></script>
+
+    <!-- Allow any inheriting page to set it's own title -->
+    <title> {% block title %}{{ title }}{% endblock %} </title>
+
+    <!-- Allow any inheriting page to extend head with additional assets -->
+    {% block head %}{% endblock %}
+</head>
+
+<header>{% block header %}{% endblock %}</header>
+
+<body class="container relative mx-auto bg-slate-800">
+    <main class="container text-white">
+        {% block content %}<p>Placeholder content</p>{% endblock %}
+    </main>
+</body>

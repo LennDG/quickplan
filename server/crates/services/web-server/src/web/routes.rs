@@ -8,7 +8,7 @@ use axum::{Json, Router};
 use lib_core::ctx::Ctx;
 use lib_core::model::plan::PlanBmc;
 use lib_core::model::ModelManager;
-use lib_html::{landing_page, plan_page};
+use lib_html::{about_page, home_page, plan_page};
 use serde::Deserialize;
 use serde_json::{json, Value};
 use tracing::debug;
@@ -17,18 +17,27 @@ use super::mw_ctx_resolver::CtxW;
 
 pub fn routes(mm: ModelManager) -> Router {
     Router::new()
-        .route("/", get(landing_page_handler))
+        .route("/", get(home_page_handler))
+        .route("/about", get(about_page_handler))
         .route("/plan/:plan_slug", get(plan_page_handler))
         .with_state(mm)
 }
 
 // region:	  --- Landing Page
-async fn landing_page_handler(State(mm): State<ModelManager>) -> Response {
-    debug!("{:<12} - landing_page_handler", "HANDLER");
+async fn home_page_handler(State(mm): State<ModelManager>) -> Response {
+    debug!("{:<12} - home_page_handler", "HANDLER");
 
-    landing_page()
+    home_page()
 }
 // endregion: --- Landing Page
+
+// region:	  --- About Page
+async fn about_page_handler(State(mm): State<ModelManager>) -> Response {
+    debug!("{:<12} - about_page_handler", "HANDLER");
+
+    about_page()
+}
+// endregion: --- About Page
 
 // region:	  --- Plan Page
 async fn plan_page_handler(

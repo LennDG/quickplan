@@ -23,3 +23,8 @@ cargo watch -q -c -w crates/services/web-server/src/ -w crates/libs/ -w .cargo/ 
 
 cargo watch -q -c -w crates/libs/ -w .cargo/ -x "test -- --nocapture"
 ```
+
+**Tailwind**
+```sh
+pnpm dlx tailwindcss -i styles/tailwind.css -o main.css --watch
+```

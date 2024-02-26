@@ -1,0 +1,17 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+    h1 {
+        @apply text-4xl font-bold mb-4;
+    }
+
+    p {
+        @apply text-lg text-slate-400 mb-8;
+    }
+
+    a {
+        @apply text-teal-500 underline;
+    }
+}

@@ -16,8 +16,8 @@ use tracing::info;
 use tracing_subscriber::EnvFilter;
 
 use crate::web::{
-    mw_ctx_resolver::mw_ctx_resolver, mw_req_stamp::mw_req_stamp_resolver,
-    mw_res_map::mw_response_map, routes, routes_static,
+    mw_ctx_resolver::mw_ctx_resolver, mw_html_strip::mw_html_strip,
+    mw_req_stamp::mw_req_stamp_resolver, mw_res_map::mw_response_map, routes, routes_static,
 };
 
 pub use self::error::{Error, Result};
@@ -41,6 +41,7 @@ async fn main() -> Result<()> {
     // -- Define Routes
     let routes_all = Router::new()
         .merge(web::routes::routes(mm.clone()))
+        //.layer(middleware::map_response(mw_html_strip))
         .layer(middleware::map_response(mw_response_map))
         //.layer(middleware::from_fn_with_state(mm.clone(), mw_ctx_resolver))
         .layer(middleware::from_fn(mw_req_stamp_resolver))

@@ -18,5 +18,5 @@ pub fn not_found() -> MethodRouter {
 pub async fn not_found_handler(uri: Uri) -> Response {
     debug!("{:<12} - not_found_handler - {uri}", "HANDLER");
 
-    (StatusCode::NOT_FOUND, lib_html::page_not_found()).into_response()
+    (StatusCode::NOT_FOUND, lib_html::not_found_page()).into_response()
 }

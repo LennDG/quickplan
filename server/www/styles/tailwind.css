@@ -1,6 +1,4 @@
 @tailwind base;
-@tailwind components;
-@tailwind utilities;
 
 @layer base {
     h1 {
@@ -15,3 +13,6 @@
         @apply text-teal-500 underline;
     }
 }
+
+@tailwind components;
+@tailwind utilities;

@@ -9,6 +9,7 @@ use lib_core::ctx::Ctx;
 use lib_core::model::plan::PlanBmc;
 use lib_core::model::ModelManager;
 use lib_html::{about_page, home_page, plan_page};
+use lib_utils::time;
 use serde::Deserialize;
 use serde_json::{json, Value};
 use tracing::debug;
@@ -24,7 +25,7 @@ pub fn routes(mm: ModelManager) -> Router {
 }
 
 // region:	  --- Landing Page
-async fn home_page_handler(State(mm): State<ModelManager>) -> Response {
+async fn home_page_handler() -> Response {
     debug!("{:<12} - home_page_handler", "HANDLER");
 
     home_page()
@@ -32,7 +33,7 @@ async fn home_page_handler(State(mm): State<ModelManager>) -> Response {
 // endregion: --- Landing Page
 
 // region:	  --- About Page
-async fn about_page_handler(State(mm): State<ModelManager>) -> Response {
+async fn about_page_handler() -> Response {
     debug!("{:<12} - about_page_handler", "HANDLER");
 
     about_page()
@@ -52,7 +53,7 @@ async fn plan_page_handler(
         .map_err(Error::Model)?;
 
     if let Some(plan) = plan {
-        Ok(plan_page(plan.name))
+        Ok(plan_page(plan.name, time::current_date()))
     } else {
         Ok(not_found_handler(uri).await)
     }

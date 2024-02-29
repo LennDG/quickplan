@@ -1,0 +1,16 @@
+<!-- prettier-ignore -->
+{% extends "page.html" %}
+
+{% block title %}{{title}}{% endblock %}
+
+{% block content %}
+<div>
+    <h1>{{plan_name}}</h1>
+    <!-- Insert calendar here-->
+    <!-- Update using HTMX -->
+    <div class="mb-4">
+        {{ calendar|safe }}
+    </div>
+    <a href="/">Back to Home</a>
+</div>
+{% endblock %}s

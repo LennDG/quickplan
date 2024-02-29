@@ -1,6 +1,8 @@
+use std::collections::HashMap;
+
 use askama::Template;
 use axum::response::{IntoResponse, Response};
-use maud::{html, Markup, Render, DOCTYPE};
+use time::Date;
 
 // region:	  --- Modules
 pub mod error;
@@ -34,7 +36,23 @@ struct NotFoundTemplate {
     title: String,
 }
 
+#[derive(Template)]
+#[template(path = "plan.html")]
+struct PlanTemplate {
+    title: String,
+    plan_name: String,
+    calendar: CalendarTemplate,
+}
 // endregion: --- Page structs
+
+// region:	  --- Calendar struct
+#[derive(Template)]
+#[template(path = "calendar.html")]
+struct CalendarTemplate {
+    current_date: Date,
+    selected_dates: Vec<(String, Date)>, // Username + Date
+}
+// endregion: --- Calendar struct
 
 // region:	  --- Landing page
 pub fn home_page() -> Response {
@@ -54,14 +72,8 @@ pub fn about_page() -> Response {
 }
 // endregion: --- About page
 
-// region:	  --- Plan page
-pub fn plan_page(plan_name: String) -> Response {
-    todo!()
-}
-// endregion: --- Plan page
-
 // region:	  --- Page Not Found
-pub fn page_not_found() -> Response {
+pub fn not_found_page() -> Response {
     NotFoundTemplate {
         title: "Not Found".to_string(),
     }
@@ -69,22 +81,25 @@ pub fn page_not_found() -> Response {
 }
 // endregion: --- Page Not Found
 
+// region:	  --- Plan page
+pub fn plan_page(plan_name: String, current_date: Date) -> Response {
+    PlanTemplate {
+        title: plan_name.clone(),
+        plan_name,
+        calendar: CalendarTemplate {
+            current_date,
+            selected_dates: vec![],
+        },
+    }
+    .into_response()
+}
+// endregion: --- Plan page
+
 // region:    --- Tests
 #[cfg(test)]
 mod tests {
     #![allow(unused)]
     use super::*;
     use anyhow::Result;
-
-    #[test]
-    fn test_html_gen() -> Result<()> {
-        let name = "Lyra";
-        let markup = html! {
-            p {  "<script>alert(\"XSS\")</script>"}
-        };
-        println!("{}", markup.into_string());
-
-        Ok(())
-    }
 }
 // endregion: --- Tests

@@ -1,9 +1,17 @@
-use time::{Duration, OffsetDateTime};
+use time::{Date, Duration, OffsetDateTime};
 
 pub use time::format_description::well_known::Rfc3339;
 
 pub fn now_utc() -> OffsetDateTime {
     OffsetDateTime::now_utc()
+}
+
+pub fn current_date() -> Date {
+    OffsetDateTime::now_utc().date()
+}
+
+pub fn date_minus_two() -> Date {
+    current_date() - Duration::days(2)
 }
 
 pub fn format_time(time: OffsetDateTime) -> String {
@@ -17,6 +25,13 @@ pub fn now_utc_plus_sec_str(sec: f64) -> String {
 
 pub fn parse_utc(moment: &str) -> Result<OffsetDateTime> {
     OffsetDateTime::parse(moment, &Rfc3339).map_err(|_| Error::DateFailParse(moment.to_string()))
+}
+
+pub fn time_since_ms(tic: OffsetDateTime) -> f64 {
+    let duration = now_utc() - tic;
+
+    // duration_ms in milliseconds with microseconds precision.
+    (duration.as_seconds_f64() * 1_000_000.).floor() / 1_000.
 }
 
 // region:	  --- Error

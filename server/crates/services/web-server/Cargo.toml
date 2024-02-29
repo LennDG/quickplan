@@ -30,6 +30,7 @@ time = "0.3"
 uuid = { version = "1", features = ["v4", "fast-rng"] }
 strum_macros = "0.26"
 derive_more = { version = "1.0.0-beta", features = ["from"] }
+minify-html-onepass = "0.15"
 
 
 [dev-dependencies]

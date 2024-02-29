@@ -1,0 +1,60 @@
+layout {
+    tab name="main" focus=true {
+        pane size=1 borderless=true {
+            plugin location="zellij:tab-bar"
+        }
+        floating_panes {
+            pane {
+                command "just"
+                args "postgres-dev"
+                close_on_exit true
+                x "90%"
+                y "90%"
+            }
+        }
+        pane split_direction="vertical" size="50%" {
+            pane  size="50%" {
+                name "web-server"
+                command "just"
+                args "watch"
+            }
+            pane  size="50%" {
+                name "tests"
+                command "just"
+                args "test-watch"
+            }
+        }
+        pane split_direction="vertical" size="50%" {
+            pane  size="50%" {
+                name "tailwind"
+                command "just"
+                args "tailwind"
+            }
+            pane  size="50%" focus=true {
+                name "console"
+            }
+        }
+        pane size=2 borderless=true {
+            plugin location="zellij:status-bar"
+        }
+    }
+    tab name="lazydocker" {
+        pane size=1 borderless=true {
+            plugin location="zellij:tab-bar"
+        }
+        pane command="lazydocker"
+        pane size=2 borderless=true {
+            plugin location="zellij:status-bar"
+        }
+    }
+    tab name="zenith" {
+        pane size=1 borderless=true {
+            plugin location="zellij:tab-bar"
+        }
+        pane command="zenith"
+        pane size=2 borderless=true {
+            plugin location="zellij:status-bar"
+        }
+    }
+    
+}

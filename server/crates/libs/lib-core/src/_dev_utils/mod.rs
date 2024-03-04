@@ -1,6 +1,7 @@
 // region:    --- Modules
 
 mod dev_db;
+pub mod pop;
 
 use crate::model::{self, ModelManager};
 use tokio::sync::OnceCell;

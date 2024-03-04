@@ -47,7 +47,7 @@ struct PlanTemplate {
 
 // region:	  --- Calendar struct
 #[derive(Template)]
-#[template(path = "calendar.html")]
+#[template(path = "test_calendar.html")]
 struct CalendarTemplate {
     current_date: Date,
     selected_dates: Vec<(String, Date)>, // Username + Date

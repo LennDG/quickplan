@@ -47,12 +47,6 @@ async fn main() -> Result<()> {
         .layer(middleware::from_fn(mw_req_stamp_resolver))
         .fallback_service(routes_static::not_found());
 
-    // region:	  --- Notify Dev!
-
-    _dev_utils::pop::pop();
-
-    // endregion: --- Notify Dev!
-
     // region:    --- Start Server
     // Note: For this block, ok to unwrap.
     let listener = TcpListener::bind("127.0.0.1:8080").await.unwrap();

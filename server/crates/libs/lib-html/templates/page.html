@@ -9,10 +9,10 @@
     <base href="/">
     <script src="https://unpkg.com/htmx.org@1.9.10/dist/htmx.min.js"></script>
 
-    <!-- Allow any inheriting page to set it's own title -->
+    {# Allow any inheriting page to set it's own title #}
     <title> {% block title %}{{ title }}{% endblock %} </title>
 
-    <!-- Allow any inheriting page to extend head with additional assets -->
+    {# Allow any inheriting page to extend head with additional assets #}
     {% block head %}{% endblock %}
 </head>
 

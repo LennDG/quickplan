@@ -21,7 +21,7 @@ layout {
             pane  size="50%" {
                 name "tests"
                 command "just"
-                args "test-watch"
+                args "test_watch"
             }
         }
         pane split_direction="vertical" size="50%" {

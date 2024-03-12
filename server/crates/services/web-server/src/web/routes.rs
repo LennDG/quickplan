@@ -8,7 +8,8 @@ use axum::{Json, Router};
 use lib_core::ctx::Ctx;
 use lib_core::model::plan::PlanBmc;
 use lib_core::model::ModelManager;
-use lib_html::{about_page, home_page, plan_page};
+use lib_html::plan_template::plan_page;
+use lib_html::{about_page, home_page};
 use lib_utils::time;
 use serde::Deserialize;
 use serde_json::{json, Value};
@@ -53,7 +54,7 @@ async fn plan_page_handler(
         .map_err(Error::Model)?;
 
     if let Some(plan) = plan {
-        Ok(plan_page(plan.name, time::current_date()))
+        Ok(plan_page(plan))
     } else {
         Ok(not_found_handler(uri).await)
     }

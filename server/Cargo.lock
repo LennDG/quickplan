@@ -1404,7 +1404,8 @@ dependencies = [
  "askama",
  "askama_axum",
  "axum",
- "regex",
+ "lib-core",
+ "lib-utils",
  "serde",
  "time",
 ]

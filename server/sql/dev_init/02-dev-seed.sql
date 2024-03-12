@@ -3,6 +3,8 @@ INSERT INTO plan (url_id, name, ctime) VALUES
     ('plan1_url', 'Plan 1', CURRENT_TIMESTAMP),
     ('plan2_url', 'Plan 2', CURRENT_TIMESTAMP);
 
+UPDATE plan SET description = 'PLAN 1 DESCRIPTION' where id = 1000;
+
 -- Seed test users
 -- For Plan 1
 INSERT INTO plan_user (plan_id, name, ctime) VALUES

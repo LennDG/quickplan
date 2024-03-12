@@ -26,6 +26,7 @@ pub struct Plan {
     // -- Properties
     pub name: String,
     pub url_id: String,
+    pub description: Option<String>,
 
     // -- Timestamps
     #[serde_as(as = "Rfc3339")]

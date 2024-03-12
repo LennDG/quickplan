@@ -2,20 +2,21 @@
 name = "lib-html"
 version = "0.1.0"
 edition = "2021"
-build = "build.rs"
 
 [lints]
 workspace = true
 
 [dependencies]
+# -- App libs
+lib-core = { path = "../lib-core" }
+lib-utils = { path = "../lib-utils" }
+# -- Askama
 askama = { version = "0.12.1", features = ["with-axum"] }
 askama_axum = "0.4"
 axum = "0.7"
+# -- Other
 serde = { version = "1", features = ["derive"] }
 time = { version = "0.3", features = ["formatting", "parsing", "serde"] }
 
 [dev-dependencies]
 anyhow = "1"
-
-[build-dependencies]
-regex = "1.10"

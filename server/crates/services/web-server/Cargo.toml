@@ -29,7 +29,7 @@ tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 time = "0.3"
 uuid = { version = "1", features = ["v4", "fast-rng"] }
 strum_macros = "0.26"
-derive_more = { version = "1.0.0-beta", features = ["from"] }
+derive_more = { workspace = true }
 minify-html-onepass = "0.15"
 
 

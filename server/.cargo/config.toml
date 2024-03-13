@@ -10,7 +10,7 @@ RUST_LOG = "web_server=debug,lib_core=debug,lib_auth=debug,lib_utils=debug"
 
 ## -- Secrets
 # Only for localhost
-SERVICE_DB_URL = "postgres://app_user:dev_only_pwd@localhost:5555/quickplan_db"
+SERVICE_DB_URL = "sqlite:///home/lenndg/projects/quickplan/server/db/dev.db"
 SERVICE_PWD_KEY = "izC4ny3NcteWFExRo3AcWD5YimEr7iQGz9XzgJPhj9SL6tKFDB__RTCZSW4vpYO84tfrpaTPE6QvaWa5mMCb1A"
 SERVICE_TOKEN_KEY = "i_uKtl_72r-V_4Zb2xT_dW2R_Nb3LYLQhvgFymDjfifFmbwtr5TxDnua-cpTg9QTp83uI7RoVPCrwYysR9C0oA"
 

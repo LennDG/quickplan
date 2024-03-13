@@ -99,7 +99,7 @@ mod tests {
     #[tokio::test]
     async fn test_create_multiple_ok() -> Result<()> {
         // -- Setup & Fixtures
-        let mm = _dev_utils::init_test().await;
+        let mm = _dev_utils::init_test("test").await;
         let ctx = Ctx::root_ctx();
 
         let fx_plan_id = PlanBmc::create(

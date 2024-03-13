@@ -3,10 +3,10 @@
 use modql::field::HasFields;
 use modql::SIden;
 use sea_query::{
-    query, Expr, Iden, IntoIden, PostgresQueryBuilder, Query, SeaRc, SimpleExpr, TableRef,
+    query, Expr, Iden, IntoIden, Query, SeaRc, SimpleExpr, SqliteQueryBuilder, TableRef,
 };
 use sea_query_binder::SqlxBinder;
-use sqlx::postgres::PgRow;
+use sqlx::sqlite::SqliteRow;
 use sqlx::FromRow;
 
 use crate::ctx::Ctx;
@@ -39,7 +39,7 @@ where
         .returning_col(CommonIden::Id);
 
     // -- Exec query
-    let (sql, values) = query.build_sqlx(PostgresQueryBuilder);
+    let (sql, values) = query.build_sqlx(SqliteQueryBuilder);
     let (id,) = sqlx::query_as_with(&sql, values).fetch_one(db).await?;
 
     Ok(id)
@@ -49,7 +49,7 @@ pub async fn create_return<MC, E, T>(_ctx: &Ctx, mm: &ModelManager, data: E) -> 
 where
     MC: DbBmc,
     E: HasFields,
-    T: for<'r> FromRow<'r, PgRow> + Unpin + Send,
+    T: for<'r> FromRow<'r, SqliteRow> + Unpin + Send,
 {
     let db = mm.db();
 
@@ -67,7 +67,7 @@ where
         .returning_all();
 
     // -- Exec query
-    let (sql, values) = query.build_sqlx(PostgresQueryBuilder);
+    let (sql, values) = query.build_sqlx(SqliteQueryBuilder);
     let (created) = sqlx::query_as_with(&sql, values).fetch_one(db).await?;
 
     Ok(created)
@@ -98,7 +98,7 @@ where
     }
 
     //-- Exec query
-    let (sql, values) = query.build_sqlx(PostgresQueryBuilder);
+    let (sql, values) = query.build_sqlx(SqliteQueryBuilder);
     let ids: Vec<(i64,)> = sqlx::query_as_with(&sql, values).fetch_all(db).await?;
     let ids: Vec<i64> = ids.into_iter().map(|(id,)| id).collect();
 
@@ -113,7 +113,7 @@ pub async fn create_multiple_return<MC, E, T>(
 where
     MC: DbBmc,
     E: HasFields,
-    T: for<'r> FromRow<'r, PgRow> + Unpin + Send,
+    T: for<'r> FromRow<'r, SqliteRow> + Unpin + Send,
 {
     let db = mm.db();
 
@@ -134,7 +134,7 @@ where
     query.columns(columns);
 
     //-- Exec query
-    let (sql, values) = query.build_sqlx(PostgresQueryBuilder);
+    let (sql, values) = query.build_sqlx(SqliteQueryBuilder);
     let entities: Vec<T> = sqlx::query_as_with(&sql, values).fetch_all(db).await?;
 
     Ok(entities)
@@ -143,7 +143,7 @@ where
 pub async fn get<MC, E>(_ctx: &Ctx, mm: &ModelManager, id: i64) -> Result<E>
 where
     MC: DbBmc,
-    E: for<'r> FromRow<'r, PgRow> + Unpin + Send,
+    E: for<'r> FromRow<'r, SqliteRow> + Unpin + Send,
     E: HasFields,
 {
     let db = mm.db();
@@ -156,7 +156,7 @@ where
         .and_where(Expr::col(CommonIden::Id).eq(id));
 
     // -- Exec query
-    let (sql, values) = query.build_sqlx(PostgresQueryBuilder);
+    let (sql, values) = query.build_sqlx(SqliteQueryBuilder);
     let entity = sqlx::query_as_with::<_, E, _>(&sql, values)
         .fetch_optional(db)
         .await?
@@ -171,7 +171,7 @@ where
 pub async fn list<MC, E>(_ctx: &Ctx, mm: &ModelManager) -> Result<Vec<E>>
 where
     MC: DbBmc,
-    E: for<'r> FromRow<'r, PgRow> + Unpin + Send,
+    E: for<'r> FromRow<'r, SqliteRow> + Unpin + Send,
     E: HasFields,
 {
     let db = mm.db();
@@ -202,7 +202,7 @@ where
         .and_where(Expr::col(CommonIden::Id).eq(id));
 
     // -- Exec Query
-    let (sql, values) = query.build_sqlx(PostgresQueryBuilder);
+    let (sql, values) = query.build_sqlx(SqliteQueryBuilder);
     let count = sqlx::query_with(&sql, values)
         .execute(db)
         .await?

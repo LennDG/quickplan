@@ -7,9 +7,8 @@ use std::process::id;
 
 use modql::field::HasFields;
 use modql::SIden;
-use sea_query::{Expr, Iden, IntoIden, PostgresQueryBuilder, Query, TableRef};
+use sea_query::{Expr, Iden, IntoIden, Query, SqliteQueryBuilder, TableRef};
 use sea_query_binder::SqlxBinder;
-use sqlx::postgres::PgRow;
 use sqlx::FromRow;
 
 use crate::ctx::Ctx;

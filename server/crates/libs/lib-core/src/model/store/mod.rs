@@ -1,17 +1,13 @@
-// region:	  --- Modules
-
-mod error;
-
+use crate::config::core_config;
+use sqlx::{migrate::MigrateDatabase, sqlite::SqlitePoolOptions, Pool, Sqlite, SqlitePool};
 use std::time::Duration;
 
-use crate::config::core_config;
-
+// region:	  --- Modules
+mod error;
 pub use self::error::{Error, Result};
-
-use sqlx::{postgres::PgPoolOptions, Pool, Postgres};
 // endregion: --- Modules
 
-pub type Db = Pool<Postgres>;
+pub type Db = SqlitePool;
 
 pub async fn new_db_pool() -> Result<Db> {
     // SEE NOTE 1
@@ -21,7 +17,13 @@ pub async fn new_db_pool() -> Result<Db> {
         core_config().DB_MAX_CONN
     };
 
-    PgPoolOptions::new()
+    if !Sqlite::database_exists(&core_config().DB_URL).await? {
+        Sqlite::create_database(&core_config().DB_URL)
+            .await
+            .map_err(|ex| Error::FailToCreateDb(ex.to_string()))?
+    }
+
+    SqlitePoolOptions::new()
         .max_connections(max_connections)
         .acquire_timeout(Duration::from_millis(core_config().DB_TIMEOUT_MS as u64))
         .connect(&core_config().DB_URL)

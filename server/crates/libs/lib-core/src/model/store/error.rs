@@ -1,10 +1,18 @@
+use derive_more::From;
 use serde::Serialize;
+use serde_with::{serde_as, DisplayFromStr};
 
 pub type Result<T> = core::result::Result<T, Error>;
 
-#[derive(Debug, Serialize)]
+#[serde_as]
+#[derive(Debug, Serialize, From)]
 pub enum Error {
     FailToCreatePool(String),
+    FailToCreateDb(String),
+
+    // -- External Modules
+    #[from]
+    Sqlx(#[serde_as(as = "DisplayFromStr")] sqlx::Error),
 }
 
 // region:    --- Error Boilerplate

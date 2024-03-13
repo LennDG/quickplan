@@ -1,6 +1,6 @@
 use lib_utils::time::Rfc3339;
 use modql::field::{Fields, HasFields};
-use sea_query::{Expr, Iden, PostgresQueryBuilder, Query};
+use sea_query::{Expr, Iden, Query, SqliteQueryBuilder};
 use sea_query_binder::SqlxBinder;
 use serde::Serialize;
 use serde_with::serde_as;
@@ -96,7 +96,7 @@ impl PlanBmc {
             .and_where(Expr::col(PlanIden::UrlId).eq(url_id));
 
         // -- Exec query
-        let (sql, values) = query.build_sqlx(PostgresQueryBuilder);
+        let (sql, values) = query.build_sqlx(SqliteQueryBuilder);
         let plan = sqlx::query_as_with::<_, Plan, _>(&sql, values)
             .fetch_optional(db)
             .await?;
@@ -127,7 +127,7 @@ mod tests {
     #[tokio::test]
     async fn test_plan_bmc_create_ok() -> Result<()> {
         // -- Setup & Fixtures
-        let mm = _dev_utils::init_test().await;
+        let mm = _dev_utils::init_test("test").await;
         let ctx = Ctx::root_ctx();
         let fx_plan_name = "plan_create_ok";
         let fx_plan_urlid = "planurl_create_ok";
@@ -152,7 +152,7 @@ mod tests {
     #[tokio::test]
     async fn test_plan_bmc_create_return_ok() -> Result<()> {
         // -- Setup & Fixtures
-        let mm = _dev_utils::init_test().await;
+        let mm = _dev_utils::init_test("test").await;
         let ctx = Ctx::root_ctx();
         let fx_plan_name = "plan_create_return_ok";
         let fx_plan_urlid = "planurl_create_return_ok";

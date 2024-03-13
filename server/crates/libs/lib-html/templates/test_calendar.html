@@ -6,9 +6,16 @@
 [27, 28, 29, 30, 0, 0, 0]
 ] %}
 
+{% set weekdays = ["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"] %}
+
 <div class="container mx-auto my-8">
     <!-- Calendar Container -->
     <div id="calendar" class="grid grid-cols-7 gap-4">
+        {% for day in weekdays %}
+        <div class="flex items-center justify-center">
+            {{day}}
+        </div>
+        {% endfor %}
         {% for row in calendar %}
         {% for day in row %}
         <div

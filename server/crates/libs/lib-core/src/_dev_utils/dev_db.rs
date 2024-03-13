@@ -1,23 +1,23 @@
 use crate::ctx::Ctx;
 use crate::model::ModelManager;
-use sqlx::postgres::PgPoolOptions;
-use sqlx::{Pool, Postgres};
+use lib_utils::envs::get_env;
+use lib_utils::time;
+use sqlx::migrate::MigrateDatabase;
+use sqlx::sqlite::{SqliteConnectOptions, SqlitePoolOptions};
+use sqlx::{Pool, Sqlite, SqlitePool};
 use std::fs;
 use std::path::{Path, PathBuf};
+use std::str::FromStr;
 use std::time::Duration;
+use tokio::time::sleep;
 use tracing::info;
 
-type Db = Pool<Postgres>;
-
-// NOTE: Hardcode to prevent deployed system db update.
-const PG_DEV_POSTGRES_URL: &str = "postgres://postgres:welcome@localhost:5555/postgres";
-const PG_DEV_APP_URL: &str = "postgres://app_user:dev_only_pwd@localhost:5555/quickplan_db";
+type Db = SqlitePool;
 
 // sql files
-const SQL_RECREATE_DB_FILE_NAME: &str = "00-recreate-db.sql";
 const SQL_DIR: &str = "sql/dev_init";
 
-pub async fn init_dev_db() -> Result<(), Box<dyn std::error::Error>> {
+pub async fn init_dev_db(db_name: &str) -> Result<(), Box<dyn std::error::Error>> {
     info!("{:<12} - init_dev_db()", "FOR-DEV-ONLY");
 
     // -- Get the sql_dir
@@ -34,13 +34,6 @@ pub async fn init_dev_db() -> Result<(), Box<dyn std::error::Error>> {
 
     let sql_dir = base_dir.join(SQL_DIR);
 
-    // -- Create the app_db/app_user with the postgres user.
-    {
-        let sql_recreate_db_file = sql_dir.join(SQL_RECREATE_DB_FILE_NAME);
-        let root_db = new_db_pool(PG_DEV_POSTGRES_URL).await?;
-        pexec(&root_db, &sql_recreate_db_file).await?;
-    }
-
     // -- Get sql files.
     let mut paths: Vec<PathBuf> = fs::read_dir(sql_dir)?
         .filter_map(|entry| entry.ok().map(|e| e.path()))
@@ -48,12 +41,13 @@ pub async fn init_dev_db() -> Result<(), Box<dyn std::error::Error>> {
     paths.sort();
 
     // -- SQL Execute each file.
-    let app_db = new_db_pool(PG_DEV_APP_URL).await?;
+    let sqlite_dev_url = &format!("sqlite://{}/db/{}.db", get_env("PWD")?, db_name);
+    let app_db = new_db(sqlite_dev_url).await?;
 
     for path in paths {
         let path_str = path.to_string_lossy();
 
-        if path_str.ends_with(".sql") && !path_str.ends_with(SQL_RECREATE_DB_FILE_NAME) {
+        if path_str.ends_with(".sql") {
             pexec(&app_db, &path).await?;
         }
     }
@@ -81,10 +75,16 @@ async fn pexec(db: &Db, file: &Path) -> Result<(), sqlx::Error> {
     Ok(())
 }
 
-async fn new_db_pool(db_con_url: &str) -> Result<Db, sqlx::Error> {
-    PgPoolOptions::new()
-        .max_connections(1)
-        .acquire_timeout(Duration::from_millis(500))
-        .connect(db_con_url)
-        .await
+async fn new_db(db_con_url: &str) -> Result<Db, sqlx::Error> {
+    if Sqlite::database_exists(db_con_url).await? {
+        Sqlite::drop_database(db_con_url).await?
+    }
+
+    Sqlite::create_database(db_con_url).await?;
+
+    let options = SqliteConnectOptions::from_str(db_con_url)?
+        .journal_mode(sqlx::sqlite::SqliteJournalMode::Wal)
+        .read_only(false);
+
+    SqlitePoolOptions::new().connect_with(options).await
 }

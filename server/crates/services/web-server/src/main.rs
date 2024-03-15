@@ -35,6 +35,9 @@ async fn main() -> Result<()> {
     // Initialize ModelManager.
     let mm = ModelManager::new().await?;
 
+    // -- DEV ONLY
+    mm.dev_seed().await;
+
     // -- Define Routes
     let routes_all = Router::new()
         .merge(web::routes::routes(mm.clone()))

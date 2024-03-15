@@ -40,8 +40,15 @@ where
 
     // -- Exec query
     let (sql, values) = query.build_sqlx(SqliteQueryBuilder);
-    let (id,) = sqlx::query_as_with(&sql, values).fetch_one(db).await?;
 
+    // Build transaction for writes, due to:
+    // https://github.com/launchbadge/sqlx/issues/2099
+    // https://github.com/launchbadge/sqlx/issues/3120
+    let mut tx = db.begin().await?;
+    let (id,) = sqlx::query_as_with(&sql, values)
+        .fetch_one(&mut *tx)
+        .await?;
+    tx.commit().await?;
     Ok(id)
 }
 
@@ -68,7 +75,11 @@ where
 
     // -- Exec query
     let (sql, values) = query.build_sqlx(SqliteQueryBuilder);
-    let (created) = sqlx::query_as_with(&sql, values).fetch_one(db).await?;
+    let mut tx = db.begin().await?;
+    let (created) = sqlx::query_as_with(&sql, values)
+        .fetch_one(&mut *tx)
+        .await?;
+    tx.commit().await?;
 
     Ok(created)
 }
@@ -99,7 +110,11 @@ where
 
     //-- Exec query
     let (sql, values) = query.build_sqlx(SqliteQueryBuilder);
-    let ids: Vec<(i64,)> = sqlx::query_as_with(&sql, values).fetch_all(db).await?;
+    let mut tx = db.begin().await?;
+    let ids: Vec<(i64,)> = sqlx::query_as_with(&sql, values)
+        .fetch_all(&mut *tx)
+        .await?;
+    tx.commit().await?;
     let ids: Vec<i64> = ids.into_iter().map(|(id,)| id).collect();
 
     Ok(ids)
@@ -135,7 +150,11 @@ where
 
     //-- Exec query
     let (sql, values) = query.build_sqlx(SqliteQueryBuilder);
-    let entities: Vec<T> = sqlx::query_as_with(&sql, values).fetch_all(db).await?;
+    let mut tx = db.begin().await?;
+    let entities: Vec<T> = sqlx::query_as_with(&sql, values)
+        .fetch_all(&mut *tx)
+        .await?;
+    tx.commit().await?;
 
     Ok(entities)
 }

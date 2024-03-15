@@ -22,12 +22,10 @@ pub async fn init_dev(db_name: &str) {
 }
 
 /// Initialize test environment.
-pub async fn init_test(db_name: &str) -> ModelManager {
+pub async fn init_test() -> ModelManager {
     static INIT: OnceCell<ModelManager> = OnceCell::const_new();
-
     let mm = INIT
         .get_or_init(|| async {
-            init_dev(db_name).await;
             // NOTE: Rare occasion where unwrap is kind of ok.
             ModelManager::new().await.unwrap()
         })

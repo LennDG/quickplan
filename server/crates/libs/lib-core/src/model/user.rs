@@ -68,3 +68,51 @@ impl UserBmc {
         crud_fns::delete::<Self>(ctx, mm, id).await
     }
 }
+
+// region:    --- Tests
+#[cfg(test)]
+mod tests {
+    #![allow(unused)]
+    use std::time::Duration;
+
+    use crate::{
+        _dev_utils,
+        model::plan::{PlanBmc, PlanForCreate},
+    };
+
+    use super::*;
+    use anyhow::Result;
+
+    #[tokio::test]
+    async fn test_user_bmc_create_ok() -> Result<()> {
+        // -- Setup & Fixtures
+        let mm = _dev_utils::init_test().await;
+        let ctx = Ctx::root_ctx();
+        let fx_plan_name = "plan_user_create_ok";
+        let fx_plan_urlid = "plan_url_user_create_ok";
+        let plan_c = PlanForCreate {
+            name: fx_plan_name.to_string(),
+            url_id: fx_plan_urlid.to_string(),
+        };
+        let fx_user_name = "user_create_ok";
+
+        // -- Exec
+        let plan_id = PlanBmc::create(&ctx, &mm, plan_c).await?;
+
+        let user_c = UserForCreate {
+            plan_id,
+            name: fx_user_name.to_string(),
+        };
+        let user_id = UserBmc::create(&ctx, &mm, user_c).await?;
+
+        // -- Check
+        let user = UserBmc::get(&ctx, &mm, user_id).await?;
+        assert_eq!(fx_user_name, user.name);
+
+        // -- Cleanup
+        PlanBmc::delete(&ctx, &mm, plan_id).await?;
+
+        Ok(())
+    }
+}
+// endregion: --- Tests

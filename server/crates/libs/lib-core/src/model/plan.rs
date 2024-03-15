@@ -33,7 +33,7 @@ pub struct Plan {
     pub ctime: OffsetDateTime,
 }
 
-#[derive(Fields)]
+#[derive(Fields, Clone)]
 pub struct PlanForCreate {
     pub name: String,
     pub url_id: String,
@@ -119,32 +119,37 @@ impl PlanBmc {
 #[cfg(test)]
 mod tests {
     #![allow(unused)]
+    use std::time::Duration;
+
     use crate::_dev_utils;
 
     use super::*;
     use anyhow::Result;
+    use tokio::time::sleep;
 
     #[tokio::test]
     async fn test_plan_bmc_create_ok() -> Result<()> {
         // -- Setup & Fixtures
-        let mm = _dev_utils::init_test("test").await;
+        let mm = _dev_utils::init_test().await;
         let ctx = Ctx::root_ctx();
-        let fx_plan_name = "plan_create_ok";
-        let fx_plan_urlid = "planurl_create_ok";
-        let plan_c = PlanForCreate {
-            name: fx_plan_name.to_string(),
-            url_id: fx_plan_urlid.to_string(),
-        };
+        for i in 0..2000 {
+            let fx_plan_name = "plan_create_ok";
+            let fx_plan_urlid = &format!("planurl_create_ok_{}", i);
+            let plan_c = PlanForCreate {
+                name: fx_plan_name.to_string(),
+                url_id: fx_plan_urlid.to_string(),
+            };
 
-        // Exec
-        let id = PlanBmc::create(&ctx, &mm, plan_c).await?;
+            // -- Exec
+            let id = PlanBmc::create(&ctx, &mm, plan_c.clone()).await?;
+            sleep(Duration::from_millis(1)).await;
+            // -- Check
+            let plan = PlanBmc::get(&ctx, &mm, id).await?;
+            assert_eq!(fx_plan_name, plan.name);
 
-        // -- Check
-        let plan = PlanBmc::get(&ctx, &mm, id).await?;
-        assert_eq!(fx_plan_name, plan.name);
-
-        // -- Cleanup
-        PlanBmc::delete(&ctx, &mm, id).await?;
+            // -- Cleanup
+            //PlanBmc::delete(&ctx, &mm, id).await?;
+        }
 
         Ok(())
     }
@@ -152,7 +157,7 @@ mod tests {
     #[tokio::test]
     async fn test_plan_bmc_create_return_ok() -> Result<()> {
         // -- Setup & Fixtures
-        let mm = _dev_utils::init_test("test").await;
+        let mm = _dev_utils::init_test().await;
         let ctx = Ctx::root_ctx();
         let fx_plan_name = "plan_create_return_ok";
         let fx_plan_urlid = "planurl_create_return_ok";
@@ -161,7 +166,7 @@ mod tests {
             url_id: fx_plan_urlid.to_string(),
         };
 
-        // Exec
+        // -- Exec
         let plan = PlanBmc::create_return(&ctx, &mm, plan_c).await?;
 
         // -- Check

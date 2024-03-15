@@ -12,7 +12,7 @@
 
 
     <!-- Calendar Container -->
-    <div id="calendar" class="grid grid-cols-7 gap-1 flex items-center justify-center">
+    <div id="calendar" class="grid grid-cols-7 gap-1 items-center justify-center">
         {% for day in weekdays %}
         <div class="text-gray-400 font-bold">
             {{day}}
@@ -22,7 +22,7 @@
         {% for row in calendar %}
         {% for day in row %}
         <div
-            class="ring-1 ring-gray-600 hover:ring-gray-400 active:ring-red-400 h-12 {% if day == 0 %}text-gray-400{% else %}text-white{% endif %}">
+            class="ring-1 ring-gray-600 hover:ring-gray-400 h-12 {% if day == 0 %}text-gray-400{% else %}text-white{% endif %}">
             {{ day }}
         </div>
         {% endfor %}

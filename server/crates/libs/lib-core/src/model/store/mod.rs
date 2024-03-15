@@ -1,6 +1,11 @@
 use crate::config::core_config;
-use sqlx::{migrate::MigrateDatabase, sqlite::SqlitePoolOptions, Pool, Sqlite, SqlitePool};
-use std::time::Duration;
+use lib_utils::envs::get_env;
+use sqlx::{
+    migrate::{MigrateDatabase, Migrator},
+    sqlite::{SqliteConnectOptions, SqlitePoolOptions},
+    Pool, Sqlite, SqlitePool,
+};
+use std::{str::FromStr, time::Duration};
 
 // region:	  --- Modules
 mod error;
@@ -10,32 +15,27 @@ pub use self::error::{Error, Result};
 pub type Db = SqlitePool;
 
 pub async fn new_db_pool() -> Result<Db> {
-    // SEE NOTE 1
-    let max_connections = if cfg!(test) {
-        1
+    let db_url = if cfg!(test) {
+        let test_db_url = format!("sqlite://{}/db/test.db", get_env("PWD").unwrap());
+        if Sqlite::database_exists(&test_db_url).await? {
+            Sqlite::drop_database(&test_db_url).await?;
+        }
+        test_db_url
     } else {
-        core_config().DB_MAX_CONN
+        core_config().DB_URL.clone()
     };
 
-    if !Sqlite::database_exists(&core_config().DB_URL).await? {
-        Sqlite::create_database(&core_config().DB_URL)
-            .await
-            .map_err(|ex| Error::FailToCreateDb(ex.to_string()))?
-    }
+    let options = SqliteConnectOptions::from_str(&db_url)?
+        .create_if_missing(true)
+        .synchronous(sqlx::sqlite::SqliteSynchronous::Normal)
+        .journal_mode(sqlx::sqlite::SqliteJournalMode::Wal)
+        .read_only(false);
 
-    SqlitePoolOptions::new()
-        .max_connections(max_connections)
-        .acquire_timeout(Duration::from_millis(core_config().DB_TIMEOUT_MS as u64))
-        .connect(&core_config().DB_URL)
-        .await
-        .map_err(|ex| Error::FailToCreatePool(ex.to_string()))
+    let db = SqlitePoolOptions::new().connect_with(options).await?;
+    migrate(&db).await?;
+    Ok(db)
 }
 
-// NOTE 1) This is not an ideal situation; however, with sqlx 0.7.1, when executing `cargo test`, some tests that use sqlx fail at a
-//         rather low level (in the tokio scheduler). It appears to be a low-level thread/async issue, as removing/adding
-//         tests causes different tests to fail. The cause remains uncertain, but setting max_connections to 1 resolves the issue.
-//         The good news is that max_connections still function normally for a regular run.
-//         This issue is likely due to the unique requirements unit tests impose on their execution, and therefore,
-//         while not ideal, it should serve as an acceptable temporary solution.
-//         It's a very challenging issue to investigate and narrow down. The alternative would have been to stick with sqlx 0.6.x, which
-//         is potentially less ideal and might lead to confusion as to why we are maintaining the older version in this blueprint.
+async fn migrate(db: &Db) -> Result<()> {
+    Ok(sqlx::migrate!("sql/migrations").run(db).await?)
+}

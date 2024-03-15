@@ -13,6 +13,8 @@ pub enum Error {
     // -- External Modules
     #[from]
     Sqlx(#[serde_as(as = "DisplayFromStr")] sqlx::Error),
+    #[from]
+    SqlxMigrate(#[serde_as(as = "DisplayFromStr")] sqlx::migrate::MigrateError),
 }
 
 // region:    --- Error Boilerplate

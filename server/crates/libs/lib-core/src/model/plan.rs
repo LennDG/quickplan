@@ -1,10 +1,9 @@
 use lib_utils::time::Rfc3339;
-use modql::field::{Fields, HasFields};
+use modql::FromSqliteRow;
+use rusqlite::Row;
 use sea_query::{Expr, Iden, Query, SqliteQueryBuilder};
-use sea_query_binder::SqlxBinder;
 use serde::Serialize;
 use serde_with::serde_as;
-use sqlx::{FromRow, QueryBuilder};
 use time::OffsetDateTime;
 
 use crate::{ctx::Ctx, model::user::UserBmc};
@@ -18,7 +17,7 @@ use crate::model::{Error, Result};
 
 // region:	  --- Plan Types
 #[serde_as]
-#[derive(Debug, Clone, Fields, FromRow, Serialize)]
+#[derive(Debug, Clone, Serialize, FromSqliteRow)]
 pub struct Plan {
     // -- Relations
     pub id: i64,
@@ -33,23 +32,10 @@ pub struct Plan {
     pub ctime: OffsetDateTime,
 }
 
-#[derive(Fields, Clone)]
+#[derive(Clone)]
 pub struct PlanForCreate {
     pub name: String,
     pub url_id: String,
-}
-
-pub struct FullPlan {
-    // -- Plan data
-    pub plan: Plan,
-
-    // -- User data
-    pub user_dates: Vec<UserDates>,
-}
-
-#[derive(Iden)]
-pub enum PlanIden {
-    UrlId,
 }
 // endregion: --- Plan Types
 

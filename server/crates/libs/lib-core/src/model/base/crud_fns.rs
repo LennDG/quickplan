@@ -1,16 +1,13 @@
 // region:	  --- Modules
 
-use modql::field::HasFields;
-use modql::SIden;
+use crate::ctx::Ctx;
+use crate::model::{error, Error, Result};
+use modql::field::HasSeaFields;
+use modql::{FromSqliteRow, SIden};
 use sea_query::{
     query, Expr, Iden, IntoIden, Query, SeaRc, SimpleExpr, SqliteQueryBuilder, TableRef,
 };
-use sea_query_binder::SqlxBinder;
-use sqlx::sqlite::SqliteRow;
-use sqlx::FromRow;
-
-use crate::ctx::Ctx;
-use crate::model::{Error, Result};
+use sea_query_rusqlite::RusqliteBinder;
 
 use super::utils::prep_fields_for_create;
 use super::ModelManager;
@@ -21,12 +18,12 @@ use super::{CommonIden, DbBmc};
 pub async fn create<MC, E>(_ctx: &Ctx, mm: &ModelManager, data: E) -> Result<i64>
 where
     MC: DbBmc,
-    E: HasFields,
+    E: HasSeaFields,
 {
     let db = mm.db();
 
     // -- Extract fields (name / sea-query value expression)
-    let mut fields = data.not_none_fields();
+    let mut fields = data.not_none_sea_fields();
     prep_fields_for_create::<MC>(&mut fields);
     let (columns, sea_values) = fields.for_sea_insert();
 
@@ -38,30 +35,26 @@ where
         .values(sea_values)?
         .returning_col(CommonIden::Id);
 
-    // -- Exec query
-    let (sql, values) = query.build_sqlx(SqliteQueryBuilder);
+    let (sql, values) = query.build_rusqlite(SqliteQueryBuilder);
 
-    // Build transaction for writes, due to:
-    // https://github.com/launchbadge/sqlx/issues/2099
-    // https://github.com/launchbadge/sqlx/issues/3120
-    let mut tx = db.begin().await?;
-    let (id,) = sqlx::query_as_with(&sql, values)
-        .fetch_one(&mut *tx)
-        .await?;
-    tx.commit().await?;
+    // -- Exec query
+    // Wait for the Mutex to free up, then execute.
+    let db = db.lock().await;
+    let mut stmt = db.prepare(&sql)?;
+    let id = stmt.query_row(&*values.as_params(), |row| row.get(0))?;
     Ok(id)
 }
 
 pub async fn create_return<MC, E, T>(_ctx: &Ctx, mm: &ModelManager, data: E) -> Result<T>
 where
     MC: DbBmc,
-    E: HasFields,
-    T: for<'r> FromRow<'r, SqliteRow> + Unpin + Send,
+    E: HasSeaFields,
+    T: FromSqliteRow + Unpin + Send,
 {
     let db = mm.db();
 
     // -- Extract fields (name / sea-query value expression)
-    let mut fields = data.not_none_fields();
+    let mut fields = data.not_none_sea_fields();
     prep_fields_for_create::<MC>(&mut fields);
     let (columns, sea_values) = fields.for_sea_insert();
 
@@ -73,167 +66,168 @@ where
         .values(sea_values)?
         .returning_all();
 
+    let (sql, values) = query.build_rusqlite(SqliteQueryBuilder);
+
     // -- Exec query
-    let (sql, values) = query.build_sqlx(SqliteQueryBuilder);
-    let mut tx = db.begin().await?;
-    let (created) = sqlx::query_as_with(&sql, values)
-        .fetch_one(&mut *tx)
-        .await?;
-    tx.commit().await?;
+    let db = db.lock().await;
+    let mut stmt = db.prepare(&sql)?;
+    let created = stmt
+        .query_and_then(&*values.as_params(), T::from_sqlite_row)?
+        .next()
+        .ok_or_else(|| rusqlite::Error::QueryReturnedNoRows)??;
 
     Ok(created)
 }
 
-pub async fn create_multiple<MC, E>(_ctx: &Ctx, mm: &ModelManager, data: Vec<E>) -> Result<Vec<i64>>
-where
-    MC: DbBmc,
-    E: HasFields,
-{
-    let db = mm.db();
+// pub async fn create_multiple<MC, E>(_ctx: &Ctx, mm: &ModelManager, data: Vec<E>) -> Result<Vec<i64>>
+// where
+//     MC: DbBmc,
+//     E: HasFields,
+// {
+//     let db = mm.db();
 
-    // -- Build query
-    let mut query = Query::insert();
-    query
-        .into_table(MC::table_ref())
-        .returning_col(CommonIden::Id);
+//     // -- Build query
+//     let mut query = Query::insert();
+//     query
+//         .into_table(MC::table_ref())
+//         .returning_col(CommonIden::Id);
 
-    let columns: Vec<SeaRc<dyn Iden>> = Vec::new();
+//     let columns: Vec<SeaRc<dyn Iden>> = Vec::new();
 
-    for d in data {
-        // -- Extract fields (name / sea-query value expression)
-        let mut fields = d.not_none_fields();
-        prep_fields_for_create::<MC>(&mut fields);
-        let (columns, sea_values) = fields.for_sea_insert();
-        query.columns(columns);
-        query.values(sea_values);
-    }
+//     for d in data {
+//         // -- Extract fields (name / sea-query value expression)
+//         let mut fields = d.not_none_fields();
+//         prep_fields_for_create::<MC>(&mut fields);
+//         let (columns, sea_values) = fields.for_sea_insert();
+//         query.columns(columns);
+//         query.values(sea_values);
+//     }
 
-    //-- Exec query
-    let (sql, values) = query.build_sqlx(SqliteQueryBuilder);
-    let mut tx = db.begin().await?;
-    let ids: Vec<(i64,)> = sqlx::query_as_with(&sql, values)
-        .fetch_all(&mut *tx)
-        .await?;
-    tx.commit().await?;
-    let ids: Vec<i64> = ids.into_iter().map(|(id,)| id).collect();
+//     let (sql, values) = query.build_sqlx(SqliteQueryBuilder);
 
-    Ok(ids)
-}
+//     //-- Exec query
+//     let mut stmt = db.lock().await.prepare(&sql)?;
+//     let created = stmt.query(&*values.as_params(), T::from_sqlite_row)?;
+//     Ok(created)
+//     let ids: Vec<i64> = ids.into_iter().map(|(id,)| id).collect();
 
-pub async fn create_multiple_return<MC, E, T>(
-    _ctx: &Ctx,
-    mm: &ModelManager,
-    data: Vec<E>,
-) -> Result<Vec<T>>
-where
-    MC: DbBmc,
-    E: HasFields,
-    T: for<'r> FromRow<'r, SqliteRow> + Unpin + Send,
-{
-    let db = mm.db();
+//     Ok(ids)
+// }
 
-    // -- Build query
-    let mut query = Query::insert();
-    query.into_table(MC::table_ref()).returning_all();
+// pub async fn create_multiple_return<MC, E, T>(
+//     _ctx: &Ctx,
+//     mm: &ModelManager,
+//     data: Vec<E>,
+// ) -> Result<Vec<T>>
+// where
+//     MC: DbBmc,
+//     E: HasFields,
+//     T: for<'r> FromRow<'r, SqliteRow> + Unpin + Send,
+// {
+//     let db = mm.db();
 
-    let columns: Vec<SeaRc<dyn Iden>> = Vec::new();
-    for d in data {
-        // -- Extract fields (name / sea-query value expression)
-        let mut fields = d.not_none_fields();
-        prep_fields_for_create::<MC>(&mut fields);
-        let (columns, sea_values) = fields.for_sea_insert();
+//     // -- Build query
+//     let mut query = Query::insert();
+//     query.into_table(MC::table_ref()).returning_all();
 
-        query.values(sea_values)?;
-    }
+//     let columns: Vec<SeaRc<dyn Iden>> = Vec::new();
+//     for d in data {
+//         // -- Extract fields (name / sea-query value expression)
+//         let mut fields = d.not_none_fields();
+//         prep_fields_for_create::<MC>(&mut fields);
+//         let (columns, sea_values) = fields.for_sea_insert();
 
-    query.columns(columns);
+//         query.values(sea_values)?;
+//     }
 
-    //-- Exec query
-    let (sql, values) = query.build_sqlx(SqliteQueryBuilder);
-    let mut tx = db.begin().await?;
-    let entities: Vec<T> = sqlx::query_as_with(&sql, values)
-        .fetch_all(&mut *tx)
-        .await?;
-    tx.commit().await?;
+//     query.columns(columns);
 
-    Ok(entities)
-}
+//     //-- Exec query
+//     let (sql, values) = query.build_sqlx(SqliteQueryBuilder);
+//     let mut tx = db.begin().await?;
+//     let entities: Vec<T> = sqlx::query_as_with(&sql, values)
+//         .fetch_all(&mut *tx)
+//         .await?;
+//     tx.commit().await?;
 
-pub async fn get<MC, E>(_ctx: &Ctx, mm: &ModelManager, id: i64) -> Result<E>
-where
-    MC: DbBmc,
-    E: for<'r> FromRow<'r, SqliteRow> + Unpin + Send,
-    E: HasFields,
-{
-    let db = mm.db();
+//     Ok(entities)
+// }
 
-    // -- Build Query
-    let mut query = Query::select();
-    query
-        .from(MC::table_ref())
-        .columns(E::field_column_refs())
-        .and_where(Expr::col(CommonIden::Id).eq(id));
+// pub async fn get<MC, E>(_ctx: &Ctx, mm: &ModelManager, id: i64) -> Result<E>
+// where
+//     MC: DbBmc,
+//     E: for<'r> FromRow<'r, SqliteRow> + Unpin + Send,
+//     E: HasFields,
+// {
+//     let db = mm.db();
 
-    // -- Exec query
-    let (sql, values) = query.build_sqlx(SqliteQueryBuilder);
-    let entity = sqlx::query_as_with::<_, E, _>(&sql, values)
-        .fetch_optional(db)
-        .await?
-        .ok_or(Error::EntityNotFound {
-            entity: MC::TABLE,
-            id,
-        })?;
+//     // -- Build Query
+//     let mut query = Query::select();
+//     query
+//         .from(MC::table_ref())
+//         .columns(E::field_column_refs())
+//         .and_where(Expr::col(CommonIden::Id).eq(id));
 
-    Ok(entity)
-}
+//     // -- Exec query
+//     let (sql, values) = query.build_sqlx(SqliteQueryBuilder);
+//     let entity = sqlx::query_as_with::<_, E, _>(&sql, values)
+//         .fetch_optional(db)
+//         .await?
+//         .ok_or(Error::EntityNotFound {
+//             entity: MC::TABLE,
+//             id,
+//         })?;
 
-pub async fn list<MC, E>(_ctx: &Ctx, mm: &ModelManager) -> Result<Vec<E>>
-where
-    MC: DbBmc,
-    E: for<'r> FromRow<'r, SqliteRow> + Unpin + Send,
-    E: HasFields,
-{
-    let db = mm.db();
+//     Ok(entity)
+// }
 
-    todo!()
-}
+// pub async fn list<MC, E>(_ctx: &Ctx, mm: &ModelManager) -> Result<Vec<E>>
+// where
+//     MC: DbBmc,
+//     E: for<'r> FromRow<'r, SqliteRow> + Unpin + Send,
+//     E: HasFields,
+// {
+//     let db = mm.db();
 
-pub async fn update<MC, E>(_ctx: &Ctx, mm: &ModelManager, id: i64, data: E) -> Result<()>
-where
-    MC: DbBmc,
-    E: HasFields,
-{
-    let db = mm.db();
+//     todo!()
+// }
 
-    todo!()
-}
+// pub async fn update<MC, E>(_ctx: &Ctx, mm: &ModelManager, id: i64, data: E) -> Result<()>
+// where
+//     MC: DbBmc,
+//     E: HasFields,
+// {
+//     let db = mm.db();
 
-pub async fn delete<MC>(_ctx: &Ctx, mm: &ModelManager, id: i64) -> Result<()>
-where
-    MC: DbBmc,
-{
-    let db = mm.db();
+//     todo!()
+// }
 
-    // -- Build query
-    let mut query = Query::delete();
-    query
-        .from_table(MC::table_ref())
-        .and_where(Expr::col(CommonIden::Id).eq(id));
+// pub async fn delete<MC>(_ctx: &Ctx, mm: &ModelManager, id: i64) -> Result<()>
+// where
+//     MC: DbBmc,
+// {
+//     let db = mm.db();
 
-    // -- Exec Query
-    let (sql, values) = query.build_sqlx(SqliteQueryBuilder);
-    let count = sqlx::query_with(&sql, values)
-        .execute(db)
-        .await?
-        .rows_affected();
+//     // -- Build query
+//     let mut query = Query::delete();
+//     query
+//         .from_table(MC::table_ref())
+//         .and_where(Expr::col(CommonIden::Id).eq(id));
 
-    // -- Check result
-    if count == 0 {
-        Err(Error::EntityNotFound {
-            entity: MC::TABLE,
-            id,
-        })
-    } else {
-        Ok(())
-    }
-}
+//     // -- Exec Query
+//     let (sql, values) = query.build_sqlx(SqliteQueryBuilder);
+//     let count = sqlx::query_with(&sql, values)
+//         .execute(db)
+//         .await?
+//         .rows_affected();
+
+//     // -- Check result
+//     if count == 0 {
+//         Err(Error::EntityNotFound {
+//             entity: MC::TABLE,
+//             id,
+//         })
+//     } else {
+//         Ok(())
+//     }
+// }

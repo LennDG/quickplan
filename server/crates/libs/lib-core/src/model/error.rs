@@ -20,7 +20,7 @@ pub enum Error {
 
     // -- Externals
     #[from]
-    Sqlx(#[serde_as(as = "DisplayFromStr")] sqlx::Error),
+    Rusqlite(#[serde_as(as = "DisplayFromStr")] rusqlite::Error),
     #[from]
     SeaQuery(#[serde_as(as = "DisplayFromStr")] sea_query::error::Error),
 }

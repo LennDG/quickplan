@@ -1,3 +1,5 @@
+use std::io;
+
 use derive_more::From;
 use serde::Serialize;
 use serde_with::{serde_as, DisplayFromStr};
@@ -12,9 +14,9 @@ pub enum Error {
 
     // -- External Modules
     #[from]
-    Sqlx(#[serde_as(as = "DisplayFromStr")] sqlx::Error),
+    Rusqlite(#[serde_as(as = "DisplayFromStr")] rusqlite::Error),
     #[from]
-    SqlxMigrate(#[serde_as(as = "DisplayFromStr")] sqlx::migrate::MigrateError),
+    Io(#[serde_as(as = "DisplayFromStr")] io::Error),
 }
 
 // region:    --- Error Boilerplate

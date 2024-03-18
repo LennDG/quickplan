@@ -6,15 +6,15 @@ use crate::model::{Error, Result};
 
 use lib_utils::time::Rfc3339;
 use modql::field::Fields;
+use modql::FromSqliteRow;
 use sea_query::{Iden, Query};
 use serde::{Deserialize, Serialize};
 use serde_with::serde_as;
-use sqlx::FromRow;
 use time::{Date, OffsetDateTime};
 
 // region:	  --- Plan Date Types
 #[serde_as]
-#[derive(Debug, Clone, Fields, FromRow, Serialize)]
+#[derive(Debug, Clone, Fields, FromSqliteRow, Serialize)]
 pub struct UserDate {
     // -- Relations
     pub user_id: i64,

@@ -1,41 +1,45 @@
 use crate::config::core_config;
 use lib_utils::envs::get_env;
-use sqlx::{
-    migrate::{MigrateDatabase, Migrator},
-    sqlite::{SqliteConnectOptions, SqlitePoolOptions},
-    Pool, Sqlite, SqlitePool,
-};
+use rusqlite::Connection;
+use std::sync::Arc;
 use std::{str::FromStr, time::Duration};
+use tokio::sync::Mutex;
 
 // region:	  --- Modules
 mod error;
 pub use self::error::{Error, Result};
 // endregion: --- Modules
 
-pub type Db = SqlitePool;
+// static MIGRATIONS_DIR: Dir = include_dir!("$CARGO_MANIFEST_DIR/sql/migrations");
+// static MIGRATIONS_DIR: Dir = include_dir!("$CARGO_MANIFEST_DIR/sql/migrations");
+
+pub type Db = Arc<Mutex<Connection>>;
 
 pub async fn new_db_pool() -> Result<Db> {
     let db_url = if cfg!(test) {
-        let test_db_url = format!("sqlite://{}/db/test.db", get_env("PWD").unwrap());
-        if Sqlite::database_exists(&test_db_url).await? {
-            Sqlite::drop_database(&test_db_url).await?;
-        }
-        test_db_url
+        let test_db = &core_config().DB_TEST_FILE;
+        tokio::fs::remove_file(test_db).await?;
+        test_db
     } else {
-        core_config().DB_URL.clone()
+        let db = &core_config().DB_FILE;
+        db
     };
 
-    let options = SqliteConnectOptions::from_str(&db_url)?
-        .create_if_missing(true)
-        .synchronous(sqlx::sqlite::SqliteSynchronous::Normal)
-        .journal_mode(sqlx::sqlite::SqliteJournalMode::Wal)
-        .read_only(false);
+    let conn = Connection::open(db_url)?;
+    //let conn = Connection::open_in_memory()?;
+    conn.pragma_update(None, "journal_mode", "WAL").unwrap();
+    conn.pragma_update(None, "synchronous", "normal").unwrap();
 
-    let db = SqlitePoolOptions::new().connect_with(options).await?;
-    migrate(&db).await?;
+    let db: Db = Arc::new(Mutex::new(conn));
+    create_schema(&db).await?;
+    //migrate(&db).await?;
     Ok(db)
 }
 
-async fn migrate(db: &Db) -> Result<()> {
-    Ok(sqlx::migrate!("sql/migrations").run(db).await?)
+pub async fn create_schema(db: &Db) -> Result<()> {
+    db.lock().await.execute(
+        include_str!("../../../sql/migrations/0001_create_schema.sql"),
+        (),
+    )?;
+    Ok(())
 }

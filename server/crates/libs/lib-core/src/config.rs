@@ -13,8 +13,8 @@ pub fn core_config() -> &'static CoreConfig {
 #[allow(non_snake_case)]
 pub struct CoreConfig {
     // -- Db
-    pub DB_URL: String,
-    pub DB_TEST_URL: String,
+    pub DB_FILE: String,
+    pub DB_TEST_FILE: String,
     pub DB_MAX_CONN: u32,
     pub DB_TIMEOUT_MS: f64,
 }
@@ -23,8 +23,8 @@ impl CoreConfig {
     fn load_from_env() -> lib_utils::envs::Result<CoreConfig> {
         Ok(CoreConfig {
             // -- Db
-            DB_URL: get_env("SERVICE_DB_URL")?,
-            DB_TEST_URL: get_env("SERVICE_TEST_DB_URL")?,
+            DB_FILE: get_env("SERVICE_DB_FILE")?,
+            DB_TEST_FILE: get_env("SERVICE_TEST_DB_FILE")?,
             DB_MAX_CONN: get_env_parse("SERVICE_DB_MAX_CONNECTIONS")?,
             DB_TIMEOUT_MS: get_env_parse("SERVICE_DB_TIMEOUT_MS")?,
         })

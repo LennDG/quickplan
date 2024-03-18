@@ -3,13 +3,9 @@
 pub mod crud_fns;
 pub mod utils;
 
-use std::process::id;
-
-use modql::field::HasFields;
 use modql::SIden;
 use sea_query::{Expr, Iden, IntoIden, Query, SqliteQueryBuilder, TableRef};
-use sea_query_binder::SqlxBinder;
-use sqlx::FromRow;
+use std::process::id;
 
 use crate::ctx::Ctx;
 use crate::model::{Error, Result};

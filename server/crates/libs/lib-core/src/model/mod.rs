@@ -60,7 +60,5 @@ impl ModelManager {
         let sql = base_dir.join(SEED_SQL);
 
         let content = fs::read_to_string(sql).unwrap();
-
-        sqlx::query(&content).execute(&self.db).await.unwrap();
     }
 }

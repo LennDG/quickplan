@@ -82,7 +82,7 @@ where
 // pub async fn create_multiple<MC, E>(_ctx: &Ctx, mm: &ModelManager, data: Vec<E>) -> Result<Vec<i64>>
 // where
 //     MC: DbBmc,
-//     E: HasFields,
+//     E: HasSeaFields,
 // {
 //     let db = mm.db();
 
@@ -96,22 +96,25 @@ where
 
 //     for d in data {
 //         // -- Extract fields (name / sea-query value expression)
-//         let mut fields = d.not_none_fields();
+//         let mut fields = d.not_none_sea_fields();
 //         prep_fields_for_create::<MC>(&mut fields);
 //         let (columns, sea_values) = fields.for_sea_insert();
 //         query.columns(columns);
 //         query.values(sea_values);
+//         query.re
 //     }
 
-//     let (sql, values) = query.build_sqlx(SqliteQueryBuilder);
+//     let (sql, values) = query.build_rusqlite(SqliteQueryBuilder);
 
 //     //-- Exec query
-//     let mut stmt = db.lock().await.prepare(&sql)?;
-//     let created = stmt.query(&*values.as_params(), T::from_sqlite_row)?;
-//     Ok(created)
-//     let ids: Vec<i64> = ids.into_iter().map(|(id,)| id).collect();
+//     let db = db.lock().await;
+//     let stmt = db.prepare(&sql)?;
+//     let ids = stmt.query_map(&*values.as_params(), |row| row.get::<i64, _>(0))?;
+//     // Ok(created)
+//     // let ids: Vec<i64> = ids.into_iter().map(|(id,)| id).collect();
 
-//     Ok(ids)
+//     todo!()
+//     //Ok(ids)
 // }
 
 // pub async fn create_multiple_return<MC, E, T>(
@@ -153,33 +156,27 @@ where
 //     Ok(entities)
 // }
 
-// pub async fn get<MC, E>(_ctx: &Ctx, mm: &ModelManager, id: i64) -> Result<E>
-// where
-//     MC: DbBmc,
-//     E: for<'r> FromRow<'r, SqliteRow> + Unpin + Send,
-//     E: HasFields,
-// {
-//     let db = mm.db();
+pub async fn get<MC, E>(_ctx: &Ctx, mm: &ModelManager, id: i64) -> Result<E>
+where
+    MC: DbBmc,
+    E: FromSqliteRow + Unpin + Send,
+    E: HasSeaFields,
+{
+    let db = mm.db();
 
-//     // -- Build Query
-//     let mut query = Query::select();
-//     query
-//         .from(MC::table_ref())
-//         .columns(E::field_column_refs())
-//         .and_where(Expr::col(CommonIden::Id).eq(id));
+    // -- Build Query
+    let mut query = Query::select();
+    query
+        .from(MC::table_ref())
+        .columns(E::sea_column_refs())
+        .and_where(Expr::col(CommonIden::Id).eq(id));
 
-//     // -- Exec query
-//     let (sql, values) = query.build_sqlx(SqliteQueryBuilder);
-//     let entity = sqlx::query_as_with::<_, E, _>(&sql, values)
-//         .fetch_optional(db)
-//         .await?
-//         .ok_or(Error::EntityNotFound {
-//             entity: MC::TABLE,
-//             id,
-//         })?;
+    let (sql, values) = query.build_rusqlite(SqliteQueryBuilder);
 
-//     Ok(entity)
-// }
+    // -- Exec query
+
+    Ok(entity)
+}
 
 // pub async fn list<MC, E>(_ctx: &Ctx, mm: &ModelManager) -> Result<Vec<E>>
 // where

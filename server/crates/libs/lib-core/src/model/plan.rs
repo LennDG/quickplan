@@ -1,23 +1,25 @@
-use lib_utils::time::Rfc3339;
-use modql::FromSqliteRow;
+use modql::{
+    field::{Fields, HasSeaFields},
+    FromSqliteRow,
+};
 use rusqlite::Row;
 use sea_query::{Expr, Iden, Query, SqliteQueryBuilder};
+use sea_query_rusqlite::RusqliteBinder;
 use serde::Serialize;
 use serde_with::serde_as;
-use time::OffsetDateTime;
 
 use crate::{ctx::Ctx, model::user::UserBmc};
 
 use super::{
     base::{self, crud_fns, DbBmc},
+    fields::Timestamp,
     user::UserDates,
     ModelManager,
 };
 use crate::model::{Error, Result};
 
 // region:	  --- Plan Types
-#[serde_as]
-#[derive(Debug, Clone, Serialize, FromSqliteRow)]
+#[derive(Debug, Clone, Fields, FromSqliteRow)]
 pub struct Plan {
     // -- Relations
     pub id: i64,
@@ -28,14 +30,18 @@ pub struct Plan {
     pub description: Option<String>,
 
     // -- Timestamps
-    #[serde_as(as = "Rfc3339")]
-    pub ctime: OffsetDateTime,
+    pub ctime: Timestamp,
 }
 
-#[derive(Clone)]
+#[derive(Fields, Clone)]
 pub struct PlanForCreate {
     pub name: String,
     pub url_id: String,
+}
+
+#[derive(Iden)]
+pub enum PlanIden {
+    UrlId,
 }
 // endregion: --- Plan Types
 
@@ -78,24 +84,19 @@ impl PlanBmc {
         let mut query = Query::select();
         query
             .from(Self::table_ref())
-            .columns(Plan::field_column_refs())
+            .columns(Plan::sea_column_refs())
             .and_where(Expr::col(PlanIden::UrlId).eq(url_id));
+        let (sql, values) = query.build_rusqlite(SqliteQueryBuilder);
 
         // -- Exec query
-        let (sql, values) = query.build_sqlx(SqliteQueryBuilder);
-        let plan = sqlx::query_as_with::<_, Plan, _>(&sql, values)
-            .fetch_optional(db)
-            .await?;
+        let db = db.lock().await;
+        let mut stmt = db.prepare(&sql)?;
+        let plan = stmt
+            .query_and_then(&*values.as_params(), Plan::from_sqlite_row)?
+            .next()
+            .transpose();
 
-        Ok(plan)
-    }
-
-    pub async fn get_full_plan(ctx: &Ctx, mm: &ModelManager, id: i64) -> Result<FullPlan> {
-        let db = mm.db();
-
-        // -- Build Query
-
-        todo!()
+        Ok(plan?)
     }
 }
 

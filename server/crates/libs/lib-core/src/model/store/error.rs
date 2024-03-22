@@ -16,6 +16,8 @@ pub enum Error {
     #[from]
     Rusqlite(#[serde_as(as = "DisplayFromStr")] rusqlite::Error),
     #[from]
+    RusqliteMigrations(#[serde_as(as = "DisplayFromStr")] rusqlite_migration::Error),
+    #[from]
     Io(#[serde_as(as = "DisplayFromStr")] io::Error),
 }
 

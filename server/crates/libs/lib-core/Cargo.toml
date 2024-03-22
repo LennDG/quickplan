@@ -20,7 +20,7 @@ serde_with = { version = "3", features = ["time_0_3"] }
 sea-query = { version = "0.31.0-rc.4", features = ["with-json"] }
 sea-query-rusqlite = { version = "0.6.0-rc", features = ["with-json"] }
 rusqlite = { version = "0.31", features = ["bundled", "serde_json"] }
-#rusqlite_migration = { version = "1.1.0", features = ["from-directory"] }
+rusqlite_migration = { version = "1.2.0-beta.1", features = ["from-directory"] }
 modql = { version = "0.4.0-rc", features = ["with-sea-query", "with-rusqlite"] }
 
 # -- Tracing
@@ -29,6 +29,7 @@ tracing = "0.1"
 uuid = { version = "1", features = ["v4", "fast-rng"] }
 time = { version = "0.3", features = ["formatting", "parsing", "serde"] }
 derive_more = { workspace = true }
+include_dir = "0.7.3"
 
 [dev-dependencies]
 anyhow = "1"

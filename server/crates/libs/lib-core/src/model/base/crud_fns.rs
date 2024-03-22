@@ -79,43 +79,43 @@ where
     Ok(created)
 }
 
-// pub async fn create_multiple<MC, E>(_ctx: &Ctx, mm: &ModelManager, data: Vec<E>) -> Result<Vec<i64>>
-// where
-//     MC: DbBmc,
-//     E: HasSeaFields,
-// {
-//     let db = mm.db();
+pub async fn create_multiple<MC, E>(_ctx: &Ctx, mm: &ModelManager, data: Vec<E>) -> Result<Vec<i64>>
+where
+    MC: DbBmc,
+    E: HasSeaFields,
+{
+    let db = mm.db();
 
-//     // -- Build query
-//     let mut query = Query::insert();
-//     query
-//         .into_table(MC::table_ref())
-//         .returning_col(CommonIden::Id);
+    // -- Build query
+    let mut query = Query::insert();
+    query
+        .into_table(MC::table_ref())
+        .returning_col(CommonIden::Id);
 
-//     let columns: Vec<SeaRc<dyn Iden>> = Vec::new();
+    let columns: Vec<SeaRc<dyn Iden>> = Vec::new();
 
-//     for d in data {
-//         // -- Extract fields (name / sea-query value expression)
-//         let mut fields = d.not_none_sea_fields();
-//         prep_fields_for_create::<MC>(&mut fields);
-//         let (columns, sea_values) = fields.for_sea_insert();
-//         query.columns(columns);
-//         query.values(sea_values);
-//         query.re
-//     }
+    for d in data {
+        // -- Extract fields (name / sea-query value expression)
+        let mut fields = d.not_none_sea_fields();
+        prep_fields_for_create::<MC>(&mut fields);
+        let (columns, sea_values) = fields.for_sea_insert();
+        query.columns(columns);
+        query.values(sea_values);
+    }
 
-//     let (sql, values) = query.build_rusqlite(SqliteQueryBuilder);
+    let (sql, values) = query.build_rusqlite(SqliteQueryBuilder);
 
-//     //-- Exec query
-//     let db = db.lock().await;
-//     let stmt = db.prepare(&sql)?;
-//     let ids = stmt.query_map(&*values.as_params(), |row| row.get::<i64, _>(0))?;
-//     // Ok(created)
-//     // let ids: Vec<i64> = ids.into_iter().map(|(id,)| id).collect();
+    //-- Exec query
+    let db = db.lock().await;
+    let mut stmt = db.prepare(&sql)?;
+    let ids: Result<Vec<i64>> = stmt
+        .query_and_then(&*values.as_params(), |row| {
+            row.get::<_, i64>(0).map_err(Error::Rusqlite)
+        })?
+        .collect();
 
-//     todo!()
-//     //Ok(ids)
-// }
+    ids
+}
 
 // pub async fn create_multiple_return<MC, E, T>(
 //     _ctx: &Ctx,
@@ -174,6 +174,15 @@ where
     let (sql, values) = query.build_rusqlite(SqliteQueryBuilder);
 
     // -- Exec query
+    let db = db.lock().await;
+    let mut stmt = db.prepare(&sql)?;
+    let entity = stmt
+        .query_and_then(&*values.as_params(), E::from_sqlite_row)?
+        .next()
+        .ok_or_else(|| Error::EntityNotFound {
+            entity: MC::TABLE,
+            id,
+        })??;
 
     Ok(entity)
 }
@@ -199,32 +208,32 @@ where
 //     todo!()
 // }
 
-// pub async fn delete<MC>(_ctx: &Ctx, mm: &ModelManager, id: i64) -> Result<()>
-// where
-//     MC: DbBmc,
-// {
-//     let db = mm.db();
+pub async fn delete<MC>(_ctx: &Ctx, mm: &ModelManager, id: i64) -> Result<()>
+where
+    MC: DbBmc,
+{
+    let db = mm.db();
 
-//     // -- Build query
-//     let mut query = Query::delete();
-//     query
-//         .from_table(MC::table_ref())
-//         .and_where(Expr::col(CommonIden::Id).eq(id));
+    // -- Build query
+    let mut query = Query::delete();
+    query
+        .from_table(MC::table_ref())
+        .and_where(Expr::col(CommonIden::Id).eq(id));
 
-//     // -- Exec Query
-//     let (sql, values) = query.build_sqlx(SqliteQueryBuilder);
-//     let count = sqlx::query_with(&sql, values)
-//         .execute(db)
-//         .await?
-//         .rows_affected();
+    let (sql, values) = query.build_rusqlite(SqliteQueryBuilder);
 
-//     // -- Check result
-//     if count == 0 {
-//         Err(Error::EntityNotFound {
-//             entity: MC::TABLE,
-//             id,
-//         })
-//     } else {
-//         Ok(())
-//     }
-// }
+    // -- Exec Query
+    let db = db.lock().await;
+    let mut stmt = db.prepare(&sql)?;
+    let count = stmt.execute(&*values.as_params())?;
+
+    // -- Check result
+    if count == 0 {
+        Err(Error::EntityNotFound {
+            entity: MC::TABLE,
+            id,
+        })
+    } else {
+        Ok(())
+    }
+}

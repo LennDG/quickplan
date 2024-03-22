@@ -2,10 +2,10 @@ use lib_utils::time::Rfc3339;
 use modql::{field::Fields, FromSqliteRow};
 use serde::Serialize;
 use serde_with::serde_as;
-use time::OffsetDateTime;
 
 use super::{
     base::{crud_fns, DbBmc},
+    fields::Timestamp,
     user_date::UserDate,
     ModelManager,
 };
@@ -13,8 +13,7 @@ use crate::ctx::Ctx;
 use crate::model::{Error, Result};
 
 // region:	  --- User Types
-#[serde_as]
-#[derive(Debug, Clone, Fields, FromSqliteRow, Serialize)]
+#[derive(Debug, Fields, Clone, FromSqliteRow)]
 pub struct User {
     // -- Relations
     pub id: i64,
@@ -23,8 +22,7 @@ pub struct User {
     pub name: String,
 
     // -- Timestamps
-    #[serde_as(as = "Rfc3339")]
-    pub ctime: OffsetDateTime,
+    pub ctime: Timestamp,
 }
 
 #[derive(Fields)]

@@ -1,42 +1,38 @@
 use super::base::{self, crud_fns, DbBmc};
+use super::fields::{ModelDate, Timestamp};
 use super::ModelManager;
 
 use crate::ctx::Ctx;
 use crate::model::{Error, Result};
-
-use lib_utils::time::Rfc3339;
 use modql::field::Fields;
 use modql::FromSqliteRow;
 use sea_query::{Iden, Query};
 use serde::{Deserialize, Serialize};
 use serde_with::serde_as;
-use time::{Date, OffsetDateTime};
 
 // region:	  --- Plan Date Types
-#[serde_as]
-#[derive(Debug, Clone, Fields, FromSqliteRow, Serialize)]
+#[derive(Debug, Clone, Fields, FromSqliteRow)]
 pub struct UserDate {
     // -- Relations
     pub user_id: i64,
 
     // -- Properties
-    pub date: Date,
+    pub date: ModelDate,
 
     // -- Timestamps
-    #[serde_as(as = "Rfc3339")]
-    pub ctime: OffsetDateTime,
+    pub ctime: Timestamp,
 }
 
-#[derive(Fields, Deserialize)]
+#[derive(Deserialize, Fields)]
 pub struct UserDateForCreate {
     pub user_id: i64,
-    pub date: Date,
+    pub date: ModelDate,
 }
 
 #[derive(Deserialize)]
 pub struct UserDateForCreateMulti {
     pub user_id: i64,
-    pub dates: Vec<Date>,
+    pub dates: Vec<ModelDate>,
 }
 // endregion: --- Plan Date Types
 
@@ -95,6 +91,7 @@ mod tests {
 
     use super::*;
     use anyhow::Result;
+    use time::Date;
 
     #[tokio::test]
     async fn test_create_multiple_ok() -> Result<()> {
@@ -124,10 +121,10 @@ mod tests {
         let date_c_m = UserDateForCreateMulti {
             user_id: fx_user_id,
             dates: vec![
-                Date::from_calendar_date(2024, time::Month::September, 5)?,
-                Date::from_calendar_date(2024, time::Month::October, 20)?,
-                Date::from_calendar_date(2024, time::Month::February, 22)?,
-                Date::from_calendar_date(2024, time::Month::March, 21)?,
+                ModelDate::new(Date::from_calendar_date(2024, time::Month::September, 5)?),
+                ModelDate::new(Date::from_calendar_date(2024, time::Month::October, 20)?),
+                ModelDate::new(Date::from_calendar_date(2024, time::Month::February, 22)?),
+                ModelDate::new(Date::from_calendar_date(2024, time::Month::March, 21)?),
             ],
         };
 

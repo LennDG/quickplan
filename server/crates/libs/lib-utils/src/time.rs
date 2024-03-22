@@ -1,4 +1,4 @@
-use time::{Date, Duration, OffsetDateTime};
+use time::{Date, OffsetDateTime};
 
 pub use time::format_description::well_known::Rfc3339;
 
@@ -10,17 +10,8 @@ pub fn current_date() -> Date {
     OffsetDateTime::now_utc().date()
 }
 
-pub fn date_minus_two() -> Date {
-    current_date() - Duration::days(2)
-}
-
 pub fn format_time(time: OffsetDateTime) -> String {
     time.format(&Rfc3339).unwrap()
-}
-
-pub fn now_utc_plus_sec_str(sec: f64) -> String {
-    let new_time = now_utc() + Duration::seconds_f64(sec);
-    format_time(new_time)
 }
 
 pub fn parse_utc(moment: &str) -> Result<OffsetDateTime> {

@@ -21,11 +21,6 @@ pub enum CommonIden {
     Id,
 }
 
-#[derive(Iden)]
-pub enum TimestampIden {
-    Ctime,
-}
-
 // endregion: --- SeaQuery Idens
 
 pub trait DbBmc {

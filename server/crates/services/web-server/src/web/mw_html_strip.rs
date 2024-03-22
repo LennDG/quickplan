@@ -4,7 +4,7 @@ use axum::{
     http::{header, HeaderValue},
     response::{Html, IntoResponse, Response},
 };
-use lib_utils::time::{now_utc, time_since_ms};
+use lib_utils::time::now_utc;
 use minify_html_onepass::{in_place, Cfg};
 use time::Duration;
 use tracing::debug;
@@ -63,11 +63,10 @@ pub async fn mw_html_strip(res: Response) -> Response {
                 HeaderValue::from_str(&length.to_string()).unwrap(),
             );
             debug!(
-                "{:<12} - mw_html_strip - removed {} bytes - compression ratio {:.2} - time taken {:}ms",
+                "{:<12} - mw_html_strip - removed {} bytes - compression ratio {:.2}",
                 "MIDDLEWARE",
                 initial_content_length - length,
                 length as f32 / initial_content_length as f32,
-                time_since_ms(tic)
             );
         })
         .map_err(|_| Error::MinificationFailed);

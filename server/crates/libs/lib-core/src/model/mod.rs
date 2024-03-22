@@ -12,6 +12,7 @@
 // region:    --- Modules
 mod base;
 mod error;
+mod fields;
 mod store;
 
 pub mod plan;
@@ -19,6 +20,8 @@ pub mod user;
 pub mod user_date;
 
 use std::{fs, path::PathBuf};
+
+use tracing::info;
 
 pub use self::error::{Error, Result};
 use self::store::{new_db_pool, Db};
@@ -43,22 +46,16 @@ impl ModelManager {
 
     // DEV: seed dev database
     pub async fn dev_seed(&self) {
-        const SEED_SQL: &str = "crates/libs/lib-core/sql/dev_init/0001_dev_seed.sql";
+        const SEED_SQL: &str = include_str!("../../sql/dev_init/dev_seed.sql");
 
-        // -- Get the sql_dir
-        // Note: This is because cargo test and cargo run won't give the same
-        //       current_dir given the worspace layout.
-        let current_dir = std::env::current_dir().unwrap();
-        let v: Vec<_> = current_dir.components().collect();
-        let path_comp = v.get(v.len().wrapping_sub(3));
-        let base_dir = if Some(true) == path_comp.map(|c| c.as_os_str() == "crates") {
-            v[..v.len() - 3].iter().collect::<PathBuf>()
-        } else {
-            current_dir.clone()
-        };
-
-        let sql = base_dir.join(SEED_SQL);
-
-        let content = fs::read_to_string(sql).unwrap();
+        let db = self.db().lock().await;
+        let stmt = db.execute(SEED_SQL, ());
+        match stmt {
+            Ok(_) => (),
+            Err(_) => info!(
+                "{:<12} - Dev Seed not succesful, DB may be in weird state",
+                "DEV_SEED"
+            ),
+        }
     }
 }

@@ -1,4 +1,4 @@
-use lib_utils::time::now_utc;
+use lib_utils::time::{format_time, now_utc};
 use rusqlite::types::{FromSql, FromSqlError};
 use sea_query::Iden;
 use serde::{Deserialize, Serialize};
@@ -38,7 +38,7 @@ impl FromSql for Timestamp {
 
 impl From<Timestamp> for sea_query::Value {
     fn from(Timestamp(odt): Timestamp) -> Self {
-        sea_query::Value::String(Some(Box::new(odt.to_string())))
+        sea_query::Value::String(Some(Box::new(format_time(odt))))
     }
 }
 // endregion: --- Timestamp

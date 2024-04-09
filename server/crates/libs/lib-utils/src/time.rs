@@ -11,11 +11,12 @@ pub fn current_date() -> Date {
 }
 
 pub fn format_time(time: OffsetDateTime) -> String {
+    // Safe to unwrap because using a well known description
     time.format(&Rfc3339).unwrap()
 }
 
 pub fn parse_utc(moment: &str) -> Result<OffsetDateTime> {
-    OffsetDateTime::parse(moment, &Rfc3339).map_err(|_| Error::DateFailParse(moment.to_string()))
+    OffsetDateTime::parse(moment, &Rfc3339).map_err(|_| Error::UtcFailParse(moment.to_string()))
 }
 
 pub fn time_since_ms(tic: OffsetDateTime) -> f64 {
@@ -31,7 +32,8 @@ pub type Result<T> = core::result::Result<T, Error>;
 
 #[derive(Debug)]
 pub enum Error {
-    DateFailParse(String),
+    TimeFormatFail(String),
+    UtcFailParse(String),
 }
 
 // region:    --- Error Boilerplate
@@ -45,3 +47,27 @@ impl std::error::Error for Error {}
 // endregion: --- Error Boilerplate
 
 // endregion: --- Error
+
+// region:    --- Tests
+#[cfg(test)]
+mod tests {
+    #![allow(unused)]
+    use super::*;
+    use anyhow::Result;
+
+    #[test]
+    fn test_parse_utc_ok() -> Result<()> {
+        // -- Setup & Fixtures
+        //let date_fx = Date::from_calendar_date(2024, time::Month::September, 5)?;
+        let datetime_str_fx = format_time(now_utc());
+
+        // -- Exec
+        let date = parse_utc(&datetime_str_fx)?;
+
+        // -- Check
+        assert_eq!(format_time(date), datetime_str_fx);
+
+        Ok(())
+    }
+}
+// endregion: --- Tests

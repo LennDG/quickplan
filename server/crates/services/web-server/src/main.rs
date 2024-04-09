@@ -41,11 +41,10 @@ async fn main() -> Result<()> {
     // -- Define Routes
     let routes_all = Router::new()
         .merge(web::routes::routes(mm.clone()))
-        //.layer(middleware::map_response(mw_html_strip))
         .layer(middleware::map_response(mw_response_map))
-        //.layer(middleware::from_fn_with_state(mm.clone(), mw_ctx_resolver))
         .layer(middleware::from_fn(mw_req_stamp_resolver))
-        .fallback_service(routes_static::not_found());
+        .fallback_service(routes_static::not_found())
+        .layer(tower_http::compression::CompressionLayer::new().gzip(true));
 
     // region:    --- Start Server
     // Note: For this block, ok to unwrap.

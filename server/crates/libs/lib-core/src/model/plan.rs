@@ -75,8 +75,8 @@ impl PlanBmc {
 
     pub async fn get_plan_by_url(
         _ctx: &Ctx,
-        url_id: &str,
         mm: &ModelManager,
+        url_id: &str,
     ) -> Result<Option<Plan>> {
         let db = mm.db();
 
@@ -158,6 +158,32 @@ mod tests {
 
         // -- Cleanup
         PlanBmc::delete(&ctx, &mm, plan.id).await?;
+
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn test_plan_bmc_by_url_ok() -> Result<()> {
+        // -- Setup & Fixtures
+        let mm = _dev_utils::init_test().await;
+        let ctx = Ctx::root_ctx();
+        let fx_plan_name = "plan_url_ok";
+        let fx_plan_urlid = "planurl_url_ok";
+        let plan_c = PlanForCreate {
+            name: fx_plan_name.to_string(),
+            url_id: fx_plan_urlid.to_string(),
+        };
+
+        // -- Exec
+        let id = PlanBmc::create(&ctx, &mm, plan_c.clone()).await?;
+        // -- Check
+        let plan = PlanBmc::get_plan_by_url(&ctx, &mm, fx_plan_urlid)
+            .await?
+            .ok_or(anyhow::Error::msg("No plan found"))?;
+        assert_eq!(fx_plan_name, plan.name);
+
+        // -- Cleanup
+        PlanBmc::delete(&ctx, &mm, id).await?;
 
         Ok(())
     }

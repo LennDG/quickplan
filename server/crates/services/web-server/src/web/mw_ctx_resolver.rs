@@ -31,10 +31,11 @@ pub async fn mw_ctx_resolver(
     next.run(req).await
 }
 
+// NOT USED CURRENTLY
 async fn ctx_resolve(mm: ModelManager, Path(params): Path<Vec<(String, String)>>) -> CtxExtResult {
     // -- Get the URL ID
     for (a, b) in params {
-        debug!("{:<12} - plan_page_handler - {a} - {b}", "HANDLER");
+        debug!("{:<12} - ctx_resolve - {a} - {b}", "MIDDLEWARE");
     }
     let url_id = "aaa";
 
@@ -43,7 +44,7 @@ async fn ctx_resolve(mm: ModelManager, Path(params): Path<Vec<(String, String)>>
 
     // TODO: Do we just stick the plan into the Ctx at this point? Only need a single DB access like that.
     // -- Check if the url_id is in the database
-    let plan = PlanBmc::get_plan_by_url(&Ctx::root_ctx(), url_id, &mm)
+    let plan = PlanBmc::get_plan_by_url(&Ctx::root_ctx(), &mm, url_id)
         .await
         .map_err(|ex| CtxExtError::ModelAccessError(ex.to_string()))?
         .ok_or(CtxExtError::UrlIdNotFound)?;

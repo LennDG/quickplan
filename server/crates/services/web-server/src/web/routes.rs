@@ -49,7 +49,7 @@ async fn plan_page_handler(
 ) -> Result<Response> {
     debug!("{:<12} - plan_page_handler - {page_slug}", "HANDLER");
     // -- Check if the page exists
-    let plan = PlanBmc::get_plan_by_url(&Ctx::root_ctx(), &page_slug, &mm)
+    let plan = PlanBmc::get_plan_by_url(&Ctx::root_ctx(), &mm, &page_slug)
         .await
         .map_err(Error::Model)?;
 

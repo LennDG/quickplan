@@ -94,7 +94,12 @@ mod tests {
     use time::Date;
 
     #[tokio::test]
-    async fn test_create_multiple_ok() -> Result<()> {
+    async fn test_create_user_date_ok() -> Result<()> {
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn test_create_user_date_multiple_ok() -> Result<()> {
         // -- Setup & Fixtures
         let mm = _dev_utils::init_test().await;
         let ctx = Ctx::root_ctx();

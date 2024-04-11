@@ -1,3 +1,7 @@
+# Run server
+run: kill
+    cd server && cargo run -p web-server
+
 # Watch webserver
 watch: kill
     sleep 2

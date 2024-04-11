@@ -10,7 +10,7 @@ use sea_query::{Iden, Query};
 use serde::{Deserialize, Serialize};
 use serde_with::serde_as;
 
-// region:	  --- Plan Date Types
+// region:	  --- User Date Types
 #[derive(Debug, Clone, Fields, FromSqliteRow)]
 pub struct UserDate {
     // -- Relations
@@ -34,9 +34,9 @@ pub struct UserDateForCreateMulti {
     pub user_id: i64,
     pub dates: Vec<ModelDate>,
 }
-// endregion: --- Plan Date Types
+// endregion: --- User Date Types
 
-// region:	  --- Plan Date Bmc
+// region:	  --- User Date Bmc
 
 pub struct UserDateBmc;
 
@@ -75,7 +75,7 @@ impl UserDateBmc {
     }
 }
 
-// endregion: --- Plan Date Bmc
+// endregion: --- User Date Bmc
 
 // region:    --- Tests
 #[cfg(test)]
@@ -85,7 +85,7 @@ mod tests {
         _dev_utils,
         model::{
             plan::{PlanBmc, PlanForCreate},
-            user::{User, UserBmc, UserForCreate},
+            user::{self, User, UserBmc, UserForCreate},
         },
     };
 
@@ -95,9 +95,48 @@ mod tests {
 
     #[tokio::test]
     async fn test_create_user_date_ok() -> Result<()> {
+        // -- Setup & Fixtures
+        let mm = _dev_utils::init_test().await;
+        let ctx = Ctx::root_ctx();
+
+        let fx_date = Date::from_calendar_date(2024, time::Month::September, 5)?;
+
+        let fx_plan_id = PlanBmc::create(
+            &ctx,
+            &mm,
+            PlanForCreate {
+                name: "create_user_date".to_string(),
+                url_id: "create_user_date".to_string(),
+                description: None
+            },
+        ).await?;
+
+        let fx_user_id = UserBmc::create(
+            &ctx,
+            &mm,
+            UserForCreate {
+                plan_id: fx_plan_id,
+                name: "create_user_date".to_string(),
+            },
+        )
+        .await?;
+
+        let date_c = UserDateForCreate {
+            user_id: fx_user_id,
+            date: ModelDate::new(fx_date)
+        };
+
+        // -- Exec
+        let id = UserDateBmc::create(&ctx, &mm, date_c).await?;
+
+        // -- Check
+        let user_date = UserDateBmc::get(&ctx, &mm, id).await?;
+        assert_eq!(user_date.date.date(), fx_date);
+
+
         Ok(())
     }
-
+    
     #[tokio::test]
     async fn test_create_user_date_multiple_ok() -> Result<()> {
         // -- Setup & Fixtures
@@ -108,8 +147,9 @@ mod tests {
             &ctx,
             &mm,
             PlanForCreate {
-                name: "create_multiple_plan_date".to_string(),
-                url_id: "create_multiple_plan_date".to_string(),
+                name: "create_multiple_user_date".to_string(),
+                url_id: "create_multiple_user_date".to_string(),
+                description: None
             },
         )
         .await?;
@@ -118,7 +158,7 @@ mod tests {
             &mm,
             UserForCreate {
                 plan_id: fx_plan_id,
-                name: "create_multiple_plan_date".to_string(),
+                name: "create_multiple_user_date".to_string(),
             },
         )
         .await?;

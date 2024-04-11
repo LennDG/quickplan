@@ -51,6 +51,10 @@ impl ModelDate {
     pub fn new(date: Date) -> Self {
         Self(date)
     }
+
+    pub fn date(&self) -> Date {
+        self.0
+    }
 }
 
 impl FromSql for ModelDate {

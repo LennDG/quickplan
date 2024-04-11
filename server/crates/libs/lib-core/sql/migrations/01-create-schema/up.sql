@@ -1,8 +1,8 @@
 CREATE TABLE plan (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    url_id varchar(128) NOT NULL UNIQUE,
-    name varchar(128) NOT NULL,
-    description varchar(1024),
+    url_id TEXT NOT NULL UNIQUE CHECK (length(url_id) <= 32),
+    name TEXT NOT NULL CHECK (length(name) <= 128),
+    description TEXT CHECK (length(description) <= 1024),
 
     -- Metadata
     ctime TEXT NOT NULL
@@ -13,7 +13,7 @@ CREATE TABLE plan_user (
     -- Relations
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     plan_id INTEGER,
-    name varchar(128) NOT NULL,
+    name TEXT NOT NULL CHECK (length(name) <= 128),
 
     -- Metadata
     ctime TEXT NOT NULL,
@@ -31,9 +31,8 @@ CREATE TABLE user_date (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     user_id INTEGER,
     
-
     -- Data
-    date TEXT NOT NULL,
+    date TEXT NOT NULL CHECK (length(date) <= 128),
     
     -- Metadata
     ctime TEXT NOT NULL,

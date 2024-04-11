@@ -49,7 +49,7 @@ impl ModelManager {
         const SEED_SQL: &str = include_str!("../../sql/dev_init/dev_seed.sql");
 
         let db = self.db().lock().await;
-        let stmt = db.execute(SEED_SQL, ());
+        let stmt = db.execute_batch(SEED_SQL);
         match stmt {
             Ok(_) => (),
             Err(_) => info!(

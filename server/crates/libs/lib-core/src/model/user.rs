@@ -112,5 +112,35 @@ mod tests {
 
         Ok(())
     }
+
+    #[tokio::test]
+    async fn test_user_bmc_create_name_too_long_fail() -> Result<()> {
+        // -- Setup & Fixtures
+        let mm = _dev_utils::init_test().await;
+        let ctx = Ctx::root_ctx();
+        let fx_plan_name = "plan_user_create_name_too_long_fail";
+        let fx_plan_urlid = "user_create_name_too_long_fail";
+        let plan_c = PlanForCreate {
+            name: fx_plan_name.to_string(),
+            url_id: fx_plan_urlid.to_string(),
+            description: None
+        };
+        let fx_user_name = "This is a string input for the test. It serves as a demonstration of a text that exceeds the required length of 128 characters. 
+        The purpose is to test how the system handles longer inputs and whether it correctly identifies them as being too long.";
+
+        // -- Exec
+        let plan_id = PlanBmc::create(&ctx, &mm, plan_c).await?;
+
+        let user_c = UserForCreate {
+            plan_id,
+            name: fx_user_name.to_string(),
+        };
+        let result_user_name_too_long = UserBmc::create(&ctx, &mm, user_c).await;
+
+        // -- Check
+        assert!(result_user_name_too_long.is_err());
+
+        Ok(())
+    }
 }
 // endregion: --- Tests

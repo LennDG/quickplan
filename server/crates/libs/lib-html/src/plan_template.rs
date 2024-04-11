@@ -6,16 +6,15 @@ use time::Date;
 #[derive(Template)]
 #[template(path = "plan.html")]
 struct PlanTemplate {
+    calendar: Calendar,
     title: String,
     plan_name: String,
-    calendar: CalendarTemplate,
+    //calendar: CalendarTemplate,
     description: String,
 }
 
 // region:	  --- Calendar struct
-#[derive(Template)]
-#[template(path = "test_calendar.html")]
-struct CalendarTemplate {
+struct Calendar {
     current_date: Date,
     selected_dates: Vec<(String, Date)>, // Username + Date
 }
@@ -32,7 +31,7 @@ impl From<Plan> for PlanTemplate {
         PlanTemplate {
             title: plan.name.clone(),
             plan_name: plan.name,
-            calendar: CalendarTemplate {
+            calendar: Calendar {
                 current_date: lib_utils::time::current_date(),
                 selected_dates: vec![],
             },

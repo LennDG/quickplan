@@ -7,7 +7,7 @@
 <div>
     <h1>{{plan_name}}</h1>
     <div class="mb-4">
-        {{ calendar|safe }}
+        {% include "test_calendar.html" %}
     </div>
     <div>{{description}}</div>
     <a href="/">Back to Home</a>

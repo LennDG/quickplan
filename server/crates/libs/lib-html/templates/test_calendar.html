@@ -22,7 +22,7 @@
         {% for row in calendar_days %}
         {% for day in row %}
         <div
-            class="ring-1 ring-gray-600 hover:ring-gray-400 h-12 {% if day == 0 %}text-gray-400{% else %}text-white{% endif %}">
+            class="hover:ring-1 hover:ring-gray-400 h-12 {% if day == 0 %}text-gray-400{% else %}text-white{% endif %}">
             {{ day }}
         </div>
         {% endfor %}

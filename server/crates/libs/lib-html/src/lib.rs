@@ -41,7 +41,7 @@ struct NotFoundTemplate {
 // region:	  --- Landing page
 pub fn home_page() -> Response {
     HomePageTemplate {
-        title: "Quickplan!".to_string(),
+        title: "Pick The Day".to_string(),
     }
     .into_response()
 }

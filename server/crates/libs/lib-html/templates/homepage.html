@@ -5,8 +5,12 @@
 
 {% block content %}
 <div>
-    <h1>Quickplan</h1>
-    <p>This is a simple HTML page with Tailwind CSS.</p>
-    <a href="/about">About</a>
+    <h1 class="text-4xl font-bold mb-4">Pick The Day</h1>
+    <p class="text-lg text-slate-400 mb-8">This is a simple HTML page with Tailwind CSS.</p>
+    <div class="container mx-auto max-w-64 relative z-0">
+        <input type="text" id="new_plan" class="block py-2.5 px-0 w-full text-sm bg-transparent border-0 border-b-2 border-gray-300 appearance-none text-white border-gray-600 focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer" placeholder=" " />
+        <label for="new_plan" class="absolute text-sm text-slate-400 duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-focus:start-0 peer-focus:text-blue-600 peer-focus:dark:text-blue-500 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6 rtl:peer-focus:translate-x-1/4 rtl:peer-focus:left-auto flex">Create new plan</label>
+    </div>
+    <a class="text-teal-500 underline" href="/about">About</a>
 </div>
 {% endblock %}

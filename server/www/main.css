@@ -793,6 +793,11 @@ video {
   text-decoration-line: underline;
 }
 
+.ring-gray-400 {
+  --tw-ring-opacity: 1;
+  --tw-ring-color: rgb(156 163 175 / var(--tw-ring-opacity));
+}
+
 .duration-300 {
   transition-duration: 300ms;
 }

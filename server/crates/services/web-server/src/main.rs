@@ -41,6 +41,7 @@ async fn main() -> Result<()> {
     // -- Define Routes
     let routes_all = Router::new()
         .merge(web::routes::routes(mm.clone()))
+        .merge(web::plan_routes::routes(mm.clone()))
         .layer(middleware::map_response(mw_response_map))
         .layer(middleware::from_fn(mw_req_stamp_resolver))
         .fallback_service(routes_static::not_found())

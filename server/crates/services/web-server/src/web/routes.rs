@@ -21,7 +21,6 @@ pub fn routes(mm: ModelManager) -> Router {
     Router::new()
         .route("/", get(home_page_handler))
         .route("/about", get(about_page_handler))
-        .route("/plan/:plan_slug", get(plan_page_handler))
         .with_state(mm)
 }
 
@@ -41,22 +40,3 @@ async fn about_page_handler() -> Response {
 }
 // endregion: --- About Page
 
-// region:	  --- Plan Page
-async fn plan_page_handler(
-    State(mm): State<ModelManager>,
-    Path(page_slug): Path<String>,
-    uri: Uri,
-) -> Result<Response> {
-    debug!("{:<12} - plan_page_handler - {page_slug}", "HANDLER");
-    // -- Check if the page exists
-    let plan = PlanBmc::get_plan_by_url(&Ctx::root_ctx(), &mm, &page_slug)
-        .await
-        .map_err(Error::Model)?;
-
-    if let Some(plan) = plan {
-        Ok(plan_page(plan))
-    } else {
-        Ok(not_found_handler(uri).await)
-    }
-}
-// endregion: --- Plan Page

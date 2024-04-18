@@ -65,6 +65,20 @@ pub fn not_found_page() -> Response {
 }
 // endregion: --- Page Not Found
 
+// region:	  --- Test response
+#[derive(Template)]
+#[template(path = "test_response.html")]
+struct TestResponseTemplate {
+    response: String,
+}
+
+pub fn test_response(response: &str) -> Response {
+    TestResponseTemplate {
+        response: response.to_string(),
+    }
+    .into_response()
+}
+// endregion: --- Test response
 // region:    --- Tests
 #[cfg(test)]
 mod tests {

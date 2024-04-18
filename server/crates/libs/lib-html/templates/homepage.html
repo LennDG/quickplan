@@ -7,14 +7,20 @@
 <div>
     <h1>Pick The Day</h1>
     <p>This is a simple HTML page with Tailwind CSS.</p>
-    <div class="container mx-auto max-w-64 relative z-0">
-        <input type="text" id="new_plan" class="block py-2.5 px-0 w-full text-sm bg-transparent border-0 border-b-2 border-gray-300 
-        appearance-none text-white border-gray-600 focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer focus:placeholder-gray-400 placeholder-transparent" placeholder="e.g. Tennis" />
-        <label for="new_plan" class="absolute text-sm text-slate-400 
-        duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] 
-        peer-focus:start-0 peer-focus:text-blue-600 peer-focus:text-blue-500 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6 rtl:peer-focus:translate-x-1/4 rtl:peer-focus:left-auto flex">Meetup name</label>
-        <button type="button" class="text-white bg-gray-700 hover:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 border-gray-700">Create</button>
+    <div class="container relative z-0 mx-auto flex max-w-80 justify-center space-x-4">
+        <div>
+            <input type="text" id="new_plan"
+                class="border-1 peer block w-full appearance-none rounded-lg border border-gray-600 bg-transparent px-2 py-2.5 text-sm text-white placeholder-transparent outline-none focus:border-gray-300 focus:placeholder-gray-400"
+                placeholder="e.g. Tennis" />
+            <label for="new_plan"
+                class="absolute px-2 top-2.5 -z-10 flex text-sm text-slate-400 peer-focus:invisible peer-valid:invisible">Meetup
+                name</label>
+        </div>
+        <button hx-post="/plan" hx-target="#response" hx-include="#new_plan"
+            class="mb-2 me-2 flex rounded-lg border-gray-700 bg-gray-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-gray-700">Create</button>
     </div>
     <a href="/about">About</a>
 </div>
+
+<div id="response"></div>
 {% endblock %}

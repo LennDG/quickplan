@@ -151,7 +151,7 @@ mod tests {
         let plan_c = PlanForCreate {
             name: fx_plan_name.to_string(),
             url_id: fx_plan_urlid.to_string(),
-            description: None
+            description: None,
         };
 
         // -- Exec
@@ -176,7 +176,7 @@ mod tests {
         let plan_c = PlanForCreate {
             name: fx_plan_name.to_string(),
             url_id: fx_plan_urlid.to_string(),
-            description: None
+            description: None,
         };
 
         // -- Exec

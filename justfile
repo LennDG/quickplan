@@ -23,3 +23,6 @@ postgres_dev:
 
 kill: 
     -lsof -i :8080 | awk 'NR==2 {print $2}' | xargs kill
+
+zellij:
+    zellij --layout zellij-layout.kdl

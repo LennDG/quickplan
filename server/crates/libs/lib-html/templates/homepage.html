@@ -6,21 +6,17 @@
 {% block content %}
 <div>
     <h1>Pick The Day</h1>
-    <p>This is a simple HTML page with Tailwind CSS.</p>
+    <p>Create a meetup!</p>
     <div class="container relative z-0 mx-auto flex max-w-80 justify-center space-x-4">
         <div>
-            <input type="text" id="new_plan"
-                class="border-1 peer block w-full appearance-none rounded-lg border border-gray-600 bg-transparent px-2 py-2.5 text-sm text-white placeholder-transparent outline-none focus:border-gray-300 focus:placeholder-gray-400"
+            <input type="text" id="new_plan" name="new_plan"
+                class="border-1 peer block w-full appearance-none rounded-lg border border-gray-600 bg-transparent px-2 py-2.5 text-sm text-white outline-none focus:border-gray-300 "
                 placeholder="e.g. Tennis" />
-            <label for="new_plan"
-                class="absolute px-2 top-2.5 -z-10 flex text-sm text-slate-400 peer-focus:invisible peer-valid:invisible">Meetup
-                name</label>
         </div>
-        <button hx-post="/plan" hx-target="#response" hx-include="#new_plan"
+        <button type="submit" hx-post="/plan" hx-include="#new_plan"
             class="mb-2 me-2 flex rounded-lg border-gray-700 bg-gray-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-gray-700">Create</button>
     </div>
     <a href="/about">About</a>
 </div>
 
-<div id="response"></div>
 {% endblock %}

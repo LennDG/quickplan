@@ -38,15 +38,6 @@ layout {
             plugin location="zellij:status-bar"
         }
     }
-    tab name="lazydocker" {
-        pane size=1 borderless=true {
-            plugin location="zellij:tab-bar"
-        }
-        pane command="lazydocker"
-        pane size=2 borderless=true {
-            plugin location="zellij:status-bar"
-        }
-    }
     tab name="zenith" {
         pane size=1 borderless=true {
             plugin location="zellij:tab-bar"
@@ -56,5 +47,4 @@ layout {
             plugin location="zellij:status-bar"
         }
     }
-    
 }

@@ -101,15 +101,24 @@ async fn create_plan_handler(
 // endregion: --- Plan creation
 
 // region:	  --- Date operations
+::time::serde::format_description!(date_format, Date, "[year]-[month]-[day]");
+
 #[derive(Deserialize)]
 struct ToggleDate {
+    #[serde(with = "date_format")]
     date: Date,
 }
 
 async fn toggle_date_handler(
+    Path(page_slug): Path<String>,
     State(mm): State<ModelManager>,
-    Form(new_plan): Form<NewPlan>,
+    Form(toggle_date): Form<ToggleDate>,
 ) -> Result<Response> {
-    todo!()
+    debug!(
+        "{:<12} - toggle_date_handler - {} - {}",
+        "HANDLER", page_slug, toggle_date.date
+    );
+
+    Ok(test_response("nothing"))
 }
 // endregion: --- Date operations

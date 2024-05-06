@@ -6,6 +6,7 @@ use lib_core::model::plan::Plan;
 use time::Date;
 
 // region:	  --- Modules
+pub mod calendar_utils;
 pub mod error;
 pub mod plan_template;
 

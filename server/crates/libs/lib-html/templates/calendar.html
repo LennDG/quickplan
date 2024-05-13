@@ -1,1 +1,26 @@
-<div>{{current_date}}</div>
+{% set weekdays = ["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"] %}
+
+<div id="calendar" class="container mx-auto my-8">
+    <!-- Calendar Container -->
+    {{calendar.month}} {{calendar.year}}
+    <button hx-get="plan/aFuNRzMN/calendar" hx-swap="outerHTML"
+        hx-vals='{"month": "{{calendar.month.previous()}}", "year": "2025"}' hx-target="#calendar">Previous
+        month</button>
+    <div class="grid grid-cols-7 gap-1 items-center justify-center">
+        {% for day in weekdays %}
+        <div class="text-gray-400 font-bold">
+            {{day}}
+        </div>
+        {% endfor %}
+        <div class="col-span-7 border-b-2 border-gray-400"></div>
+        {% for week in calendar.weeks %}
+        {% for date in week %}
+        <button hx-post name="date" value="{{ date }}" type="submit"
+            class="ring-gray-400 hover:ring-1 h-12 {% if date.month() != calendar.month %}text-gray-500{% else %}text-white{% endif %}">
+            {{ date.day() }}
+        </button>
+        {% endfor %}
+        {% endfor %}
+    </div>
+
+</div>

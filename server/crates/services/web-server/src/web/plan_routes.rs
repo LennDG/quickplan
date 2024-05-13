@@ -1,8 +1,8 @@
 use crate::web::routes_static::{not_found, not_found_handler};
 use crate::web::{Error, Result};
-use ::time::Date;
+use ::time::{Date, Month};
 use axum::body::Body;
-use axum::extract::{Path, State};
+use axum::extract::{Path, Query, State};
 use axum::http::{HeaderValue, StatusCode, Uri};
 use axum::response::Response;
 use axum::routing::{get, post};
@@ -10,7 +10,7 @@ use axum::{Form, Json, Router};
 use lib_core::ctx::Ctx;
 use lib_core::model::plan::{self, Plan, PlanBmc, PlanForCreate};
 use lib_core::model::ModelManager;
-use lib_html::plan_template::plan_page;
+use lib_html::plan_template::{calendar_div, plan_page};
 use lib_html::{about_page, home_page, test_response};
 use lib_utils::time;
 use serde::Deserialize;
@@ -22,9 +22,11 @@ pub fn routes(mm: ModelManager) -> Router {
         "/plan",
         Router::new()
             .route("/", post(create_plan_handler))
-            .route(
+            .nest(
                 "/:plan_slug",
-                get(plan_page_handler).post(toggle_date_handler),
+                Router::new()
+                    .route("/", get(plan_page_handler).post(toggle_date_handler))
+                    .route("/calendar", get(calendar_month_selection_handler)),
             )
             .with_state(mm.clone()),
     )
@@ -122,3 +124,24 @@ async fn toggle_date_handler(
     Ok(test_response("nothing"))
 }
 // endregion: --- Date operations
+
+// region:	  --- Calendar operations
+#[derive(Deserialize)]
+struct CalendarMonth {
+    month: Month,
+    year: i32,
+}
+
+async fn calendar_month_selection_handler(
+    Path(page_slug): Path<String>,
+    State(mm): State<ModelManager>,
+    Query(calendar_month): Query<CalendarMonth>,
+) -> Result<Response> {
+    debug!(
+        "{:<12} - calendar_month_selection_handler - {} - {} - {}",
+        "HANDLER", page_slug, calendar_month.month, calendar_month.year
+    );
+
+    Ok(calendar_div(calendar_month.month, calendar_month.year))
+}
+// endregion: --- Calendar operations

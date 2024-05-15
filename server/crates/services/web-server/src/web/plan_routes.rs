@@ -1,4 +1,4 @@
-use crate::web::routes_static::{not_found, not_found_handler};
+use crate::web::routes_static::not_found_handler;
 use crate::web::{Error, Result};
 use ::time::{Date, Month};
 use axum::body::Body;
@@ -6,15 +6,13 @@ use axum::extract::{Path, Query, State};
 use axum::http::{HeaderValue, StatusCode, Uri};
 use axum::response::Response;
 use axum::routing::{get, post};
-use axum::{Form, Json, Router};
+use axum::{Form, Router};
 use lib_core::ctx::Ctx;
-use lib_core::model::plan::{self, Plan, PlanBmc, PlanForCreate};
+use lib_core::model::plan::{PlanBmc, PlanForCreate};
 use lib_core::model::ModelManager;
 use lib_html::plan_template::{calendar_div, plan_page};
-use lib_html::{about_page, home_page, test_response};
-use lib_utils::time;
+use lib_html::test_response;
 use serde::Deserialize;
-use serde_json::{json, Value};
 use tracing::debug;
 
 pub fn routes(mm: ModelManager) -> Router {
@@ -22,13 +20,12 @@ pub fn routes(mm: ModelManager) -> Router {
         "/plan",
         Router::new()
             .route("/", post(create_plan_handler))
+            .route("/calendar", get(calendar_month_selection_handler))
             .nest(
                 "/:plan_slug",
-                Router::new()
-                    .route("/", get(plan_page_handler).post(toggle_date_handler))
-                    .route("/calendar", get(calendar_month_selection_handler)),
+                Router::new().route("/", get(plan_page_handler).post(toggle_date_handler)),
             )
-            .with_state(mm.clone()),
+            .with_state(mm),
     )
 }
 
@@ -42,9 +39,9 @@ async fn plan_page_handler(
     // -- Check if the page exists
     let plan = PlanBmc::get_plan_by_url(&Ctx::root_ctx(), &mm, &page_slug)
         .await
-        .map_err(Error::Model)?;
+        .map_err(Error::Model);
 
-    if let Some(plan) = plan {
+    if let Ok(plan) = plan {
         Ok(plan_page(plan))
     } else {
         Ok(not_found_handler(uri).await)
@@ -79,7 +76,7 @@ async fn create_plan_handler(
 
     // -- Create the plan with the BMC
     let root_ctx = Ctx::root_ctx();
-    let created_plan = PlanBmc::create(
+    PlanBmc::create(
         &root_ctx,
         &mm,
         PlanForCreate {
@@ -109,6 +106,8 @@ async fn create_plan_handler(
 struct ToggleDate {
     #[serde(with = "date_format")]
     date: Date,
+    user: String,
+    plan_id: String,
 }
 
 async fn toggle_date_handler(
@@ -121,27 +120,29 @@ async fn toggle_date_handler(
         "HANDLER", page_slug, toggle_date.date
     );
 
+    // --
+
     Ok(test_response("nothing"))
 }
 // endregion: --- Date operations
 
 // region:	  --- Calendar operations
 #[derive(Deserialize)]
-struct CalendarMonth {
+struct PlanCalendar {
     month: Month,
     year: i32,
+    plan_id: String,
 }
 
 async fn calendar_month_selection_handler(
-    Path(page_slug): Path<String>,
     State(mm): State<ModelManager>,
-    Query(calendar_month): Query<CalendarMonth>,
+    Query(plan_calendar): Query<PlanCalendar>,
 ) -> Result<Response> {
     debug!(
         "{:<12} - calendar_month_selection_handler - {} - {} - {}",
-        "HANDLER", page_slug, calendar_month.month, calendar_month.year
+        "HANDLER", plan_calendar.plan_id, plan_calendar.month, plan_calendar.year
     );
 
-    Ok(calendar_div(calendar_month.month, calendar_month.year))
+    Ok(calendar_div(plan_calendar.month, plan_calendar.year))
 }
 // endregion: --- Calendar operations

@@ -4,21 +4,13 @@ mod error;
 mod log;
 mod web;
 
-use axum::{
-    http::StatusCode,
-    middleware,
-    response::{IntoResponse, Response},
-    Router,
-};
-use lib_core::{_dev_utils, model::ModelManager};
+use axum::{middleware, Router};
+use lib_core::model::ModelManager;
 use tokio::net::TcpListener;
 use tracing::info;
 use tracing_subscriber::EnvFilter;
 
-use crate::web::{
-    mw_ctx_resolver::mw_ctx_resolver, mw_html_strip::mw_html_strip,
-    mw_req_stamp::mw_req_stamp_resolver, mw_res_map::mw_response_map, routes, routes_static,
-};
+use crate::web::{mw_req_stamp::mw_req_stamp_resolver, mw_res_map::mw_response_map, routes_static};
 
 pub use self::error::{Error, Result};
 use config::web_config;
@@ -42,6 +34,7 @@ async fn main() -> Result<()> {
     let routes_all = Router::new()
         .merge(web::routes::routes(mm.clone()))
         .merge(web::plan_routes::routes(mm.clone()))
+        .merge(web::user_routes::routes(mm.clone()))
         .layer(middleware::map_response(mw_response_map))
         .layer(middleware::from_fn(mw_req_stamp_resolver))
         .fallback_service(routes_static::not_found())

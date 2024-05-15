@@ -14,6 +14,10 @@ pub enum Error {
         id: i64,
     },
 
+    PlanUrlNotFound {
+        url_id: String,
+    },
+
     // -- Modules
     #[from]
     Store(store::Error),

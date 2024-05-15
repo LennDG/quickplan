@@ -6,10 +6,22 @@
 {% block content %}
 <div>
     <h1>{{plan_name}}</h1>
+    <div id="user_creation">
+        <h2>What's your name?</h2>
+        <div class="container relative z-0 mx-auto flex max-w-80 justify-center space-x-4">
+            <div>
+                <input type="text" id="username" name="username"
+                    class="border-1 peer block w-full appearance-none rounded-lg border border-gray-600 bg-transparent px-2 py-2.5 text-sm text-white outline-none focus:border-gray-300 " />
+            </div>
+            <button type="submit" hx-post="/user/{{plan_id}}" hx-include="#username" hx-target="#user_creation"
+                class="mb-2 me-2 flex rounded-lg border-gray-700 bg-gray-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-gray-700">Create</button>
+        </div>
+    </div>
     <div class="mb-4">
         {% include "calendar.html" %}
     </div>
     <div>{{description}}</div>
     <a href="/">Back to Home</a>
+    <input type="hidden" id="plan_id" name="plan_id" value="{{plan_id}}" />
 </div>
 {% endblock %}s

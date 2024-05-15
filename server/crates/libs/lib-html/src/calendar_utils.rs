@@ -1,3 +1,4 @@
+use serde::{Deserialize, Serialize};
 use time::{Date, Month, Weekday};
 
 fn get_dates_for_month(month: Month, year: i32) -> Vec<Date> {
@@ -45,8 +46,22 @@ fn pad_dates(mut dates: Vec<Date>) -> Vec<Date> {
     padded
 }
 
-pub fn get_calender_month_dates(month: Month, year: i32) -> Vec<Date> {
+pub fn calender_month_dates(month: Month, year: i32) -> Vec<Date> {
     pad_dates(get_dates_for_month(month, year))
+}
+
+pub fn next_calendar_month(month: &Month, year: i32) -> (Month, i32) {
+    match month {
+        Month::December => (Month::January, year + 1),
+        _ => (month.next(), year),
+    }
+}
+
+pub fn previous_calendar_month(month: &Month, year: i32) -> (Month, i32) {
+    match month {
+        Month::January => (Month::December, year - 1),
+        _ => (month.previous(), year),
+    }
 }
 
 // region:    --- Tests

@@ -74,11 +74,7 @@ impl PlanBmc {
         crud_fns::delete::<Self>(ctx, mm, id).await
     }
 
-    pub async fn get_plan_by_url(
-        _ctx: &Ctx,
-        mm: &ModelManager,
-        url_id: &str,
-    ) -> Result<Option<Plan>> {
+    pub async fn get_plan_by_url(_ctx: &Ctx, mm: &ModelManager, url_id: &str) -> Result<Plan> {
         let db = mm.db();
 
         // -- Build Query
@@ -95,7 +91,9 @@ impl PlanBmc {
         let plan = stmt
             .query_and_then(&*values.as_params(), Plan::from_sqlite_row)?
             .next()
-            .transpose();
+            .ok_or_else(|| Error::PlanUrlNotFound {
+                url_id: url_id.to_string(),
+            })?;
 
         Ok(plan?)
     }
@@ -182,9 +180,7 @@ mod tests {
         // -- Exec
         let id = PlanBmc::create(&ctx, &mm, plan_c.clone()).await?;
         // -- Check
-        let plan = PlanBmc::get_plan_by_url(&ctx, &mm, fx_plan_urlid)
-            .await?
-            .ok_or(anyhow::Error::msg("No plan found"))?;
+        let plan = PlanBmc::get_plan_by_url(&ctx, &mm, fx_plan_urlid).await?;
         assert_eq!(fx_plan_name, plan.name);
 
         // -- Cleanup

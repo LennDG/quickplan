@@ -46,8 +46,8 @@ async fn ctx_resolve(mm: ModelManager, Path(params): Path<Vec<(String, String)>>
     // -- Check if the url_id is in the database
     let plan = PlanBmc::get_plan_by_url(&Ctx::root_ctx(), &mm, url_id)
         .await
-        .map_err(|ex| CtxExtError::ModelAccessError(ex.to_string()))?
-        .ok_or(CtxExtError::UrlIdNotFound)?;
+        .map_err(|ex| CtxExtError::ModelAccessError(ex.to_string()))
+        .map_err(|_| CtxExtError::UrlIdNotFound)?;
 
     debug!("{:<12} - ctx_resolve -", "MIDDLEWARE");
 

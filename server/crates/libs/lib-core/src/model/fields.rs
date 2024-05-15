@@ -1,7 +1,7 @@
 use lib_utils::time::{format_time, now_utc};
 use rusqlite::types::{FromSql, FromSqlError};
 use sea_query::Iden;
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
 use time::{macros::format_description, Date, OffsetDateTime};
 
 // region:	  --- Timestamp
@@ -22,16 +22,13 @@ impl Timestamp {
 impl FromSql for Timestamp {
     fn column_result(value: rusqlite::types::ValueRef<'_>) -> rusqlite::types::FromSqlResult<Self> {
         match value {
-            rusqlite::types::ValueRef::Null => Err(FromSqlError::InvalidType),
-            rusqlite::types::ValueRef::Integer(_) => Err(FromSqlError::InvalidType),
-            rusqlite::types::ValueRef::Real(_) => Err(FromSqlError::InvalidType),
             rusqlite::types::ValueRef::Text(t) => {
                 let s = std::str::from_utf8(t).map_err(|_| FromSqlError::InvalidType)?;
                 let datetime = lib_utils::time::parse_utc(s)
                     .map_err(|err| FromSqlError::Other(Box::new(err)))?;
                 Ok(Self(datetime))
             }
-            rusqlite::types::ValueRef::Blob(_) => Err(FromSqlError::InvalidType),
+            _ => Err(FromSqlError::InvalidType),
         }
     }
 }
@@ -60,16 +57,13 @@ impl ModelDate {
 impl FromSql for ModelDate {
     fn column_result(value: rusqlite::types::ValueRef<'_>) -> rusqlite::types::FromSqlResult<Self> {
         match value {
-            rusqlite::types::ValueRef::Null => Err(FromSqlError::InvalidType),
-            rusqlite::types::ValueRef::Integer(_) => Err(FromSqlError::InvalidType),
-            rusqlite::types::ValueRef::Real(_) => Err(FromSqlError::InvalidType),
             rusqlite::types::ValueRef::Text(t) => {
                 let s = std::str::from_utf8(t).map_err(|_| FromSqlError::InvalidType)?;
                 let date = Date::parse(s, &format_description!("[year]-[month]-[day]"))
                     .map_err(|_| FromSqlError::InvalidType)?;
                 Ok(Self(date))
             }
-            rusqlite::types::ValueRef::Blob(_) => Err(FromSqlError::InvalidType),
+            _ => Err(FromSqlError::InvalidType),
         }
     }
 }

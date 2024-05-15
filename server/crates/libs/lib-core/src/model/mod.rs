@@ -19,8 +19,6 @@ pub mod plan;
 pub mod user;
 pub mod user_date;
 
-use std::{fs, path::PathBuf};
-
 use tracing::info;
 
 pub use self::error::{Error, Result};

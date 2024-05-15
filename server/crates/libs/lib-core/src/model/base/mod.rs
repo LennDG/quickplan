@@ -4,11 +4,7 @@ pub mod crud_fns;
 pub mod utils;
 
 use modql::SIden;
-use sea_query::{Expr, Iden, IntoIden, Query, SqliteQueryBuilder, TableRef};
-use std::process::id;
-
-use crate::ctx::Ctx;
-use crate::model::{Error, Result};
+use sea_query::{Iden, IntoIden, TableRef};
 
 use super::ModelManager;
 

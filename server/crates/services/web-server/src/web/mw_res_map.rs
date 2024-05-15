@@ -4,16 +4,12 @@ use crate::web::{self};
 use axum::http::{Method, Uri};
 use axum::response::{IntoResponse, Response};
 use axum::Json;
-use lib_core::ctx::Ctx;
 use serde_json::{json, to_value};
 use std::sync::Arc;
 use tracing::debug;
 use uuid::Uuid;
 
-use super::mw_ctx_resolver::CtxW;
-
 pub async fn mw_response_map(
-    ctx: Option<CtxW>,
     uri: Uri,
     req_method: Method,
     req_stamp: ReqStamp,
@@ -21,7 +17,6 @@ pub async fn mw_response_map(
 ) -> Response {
     debug!("{:<12} - mw_reponse_map", "RES_MAPPER");
     let uuid = Uuid::new_v4();
-    let ctx = ctx.map(|ctx| ctx.0);
 
     // -- Get the eventual response error.
     let web_error = res.extensions().get::<Arc<web::Error>>().map(Arc::as_ref);
@@ -55,7 +50,7 @@ pub async fn mw_response_map(
     let client_error = client_status_error.unzip().1;
 
     // TODO: Need to hander if log_request fail (but should not fail request)
-    let _ = log_request(req_method, uri, req_stamp, ctx, web_error, client_error).await;
+    let _ = log_request(req_method, uri, req_stamp, web_error, client_error).await;
 
     debug!("\n");
 

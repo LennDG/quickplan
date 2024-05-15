@@ -1,7 +1,6 @@
 // region:	  --- Modules
 
-use crate::ctx::Ctx;
-use crate::model::{error, Error, Result};
+use crate::model::{Error, Result};
 use modql::field::HasSeaFields;
 use modql::{FromSqliteRow, SIden};
 use sea_query::{
@@ -15,7 +14,7 @@ use super::{CommonIden, DbBmc};
 
 // endregion: --- Modules
 
-pub async fn create<MC, E>(_ctx: &Ctx, mm: &ModelManager, data: E) -> Result<i64>
+pub async fn create<MC, E>(mm: &ModelManager, data: E) -> Result<i64>
 where
     MC: DbBmc,
     E: HasSeaFields,
@@ -45,7 +44,7 @@ where
     Ok(id)
 }
 
-pub async fn create_return<MC, E, T>(_ctx: &Ctx, mm: &ModelManager, data: E) -> Result<T>
+pub async fn create_return<MC, E, T>(mm: &ModelManager, data: E) -> Result<T>
 where
     MC: DbBmc,
     E: HasSeaFields,
@@ -79,7 +78,7 @@ where
     Ok(created)
 }
 
-pub async fn create_multiple<MC, E>(_ctx: &Ctx, mm: &ModelManager, data: Vec<E>) -> Result<Vec<i64>>
+pub async fn create_multiple<MC, E>(mm: &ModelManager, data: Vec<E>) -> Result<Vec<i64>>
 where
     MC: DbBmc,
     E: HasSeaFields,
@@ -118,7 +117,7 @@ where
 }
 
 // pub async fn create_multiple_return<MC, E, T>(
-//     _ctx: &Ctx,
+//     _ctx: 
 //     mm: &ModelManager,
 //     data: Vec<E>,
 // ) -> Result<Vec<T>>
@@ -156,7 +155,7 @@ where
 //     Ok(entities)
 // }
 
-pub async fn get<MC, E>(_ctx: &Ctx, mm: &ModelManager, id: i64) -> Result<E>
+pub async fn get<MC, E>(mm: &ModelManager, id: i64) -> Result<E>
 where
     MC: DbBmc,
     E: FromSqliteRow + Unpin + Send,
@@ -187,7 +186,7 @@ where
     Ok(entity)
 }
 
-// pub async fn list<MC, E>(_ctx: &Ctx, mm: &ModelManager) -> Result<Vec<E>>
+// pub async fn list<MC, E>(_ctx:  mm: &ModelManager) -> Result<Vec<E>>
 // where
 //     MC: DbBmc,
 //     E: for<'r> FromRow<'r, SqliteRow> + Unpin + Send,
@@ -198,7 +197,7 @@ where
 //     todo!()
 // }
 
-// pub async fn update<MC, E>(_ctx: &Ctx, mm: &ModelManager, id: i64, data: E) -> Result<()>
+// pub async fn update<MC, E>(_ctx:  mm: &ModelManager, id: i64, data: E) -> Result<()>
 // where
 //     MC: DbBmc,
 //     E: HasFields,
@@ -208,7 +207,7 @@ where
 //     todo!()
 // }
 
-pub async fn delete<MC>(_ctx: &Ctx, mm: &ModelManager, id: i64) -> Result<()>
+pub async fn delete<MC>(mm: &ModelManager, id: i64) -> Result<()>
 where
     MC: DbBmc,
 {

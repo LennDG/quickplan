@@ -1,4 +1,3 @@
-use super::mw_ctx_resolver;
 use crate::web;
 use ::serde::Serialize;
 use axum::{
@@ -22,9 +21,6 @@ pub enum Error {
     // -- Modules
     #[from]
     Html(lib_html::Error),
-
-    #[from]
-    CtxExt(mw_ctx_resolver::CtxExtError),
 
     #[from]
     Model(model::Error),

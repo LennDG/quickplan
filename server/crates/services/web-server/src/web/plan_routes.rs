@@ -7,7 +7,6 @@ use axum::http::{HeaderValue, StatusCode, Uri};
 use axum::response::Response;
 use axum::routing::{get, post};
 use axum::{Form, Router};
-use lib_core::ctx::Ctx;
 use lib_core::model::plan::{PlanBmc, PlanForCreate};
 use lib_core::model::ModelManager;
 use lib_html::plan_template::{calendar_div, plan_page};
@@ -37,7 +36,7 @@ async fn plan_page_handler(
 ) -> Result<Response> {
     debug!("{:<12} - plan_page_handler - {page_slug}", "HANDLER");
     // -- Check if the page exists
-    let plan = PlanBmc::get_plan_by_url(&Ctx::root_ctx(), &mm, &page_slug)
+    let plan = PlanBmc::get_plan_by_url(&mm, &page_slug)
         .await
         .map_err(Error::Model);
 
@@ -75,9 +74,7 @@ async fn create_plan_handler(
     let url_id = lib_utils::url_id::new_url_id();
 
     // -- Create the plan with the BMC
-    let root_ctx = Ctx::root_ctx();
     PlanBmc::create(
-        &root_ctx,
         &mm,
         PlanForCreate {
             name: new_plan.new_plan,

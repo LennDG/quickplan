@@ -2,7 +2,6 @@ use crate::web::mw_req_stamp::ReqStamp;
 use crate::web::{self, ClientError};
 use crate::Result;
 use axum::http::{Method, Uri};
-use lib_core::ctx::Ctx;
 use lib_utils::time::{format_time, now_utc};
 use serde::Serialize;
 use serde_json::{json, Value};
@@ -14,7 +13,6 @@ pub async fn log_request(
     http_method: Method,
     uri: Uri,
     req_stamp: ReqStamp,
-    ctx: Option<Ctx>,
     web_error: Option<&web::Error>,
     client_error: Option<ClientError>,
 ) -> Result<()> {

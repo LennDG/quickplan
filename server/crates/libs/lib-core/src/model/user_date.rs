@@ -1,14 +1,11 @@
-use super::base::{self, crud_fns, DbBmc};
+use super::base::{crud_fns, DbBmc};
 use super::fields::{ModelDate, Timestamp};
 use super::ModelManager;
 
-use crate::ctx::Ctx;
-use crate::model::{Error, Result};
+use crate::model::Result;
 use modql::field::Fields;
 use modql::FromSqliteRow;
-use sea_query::{Iden, Query};
-use serde::{Deserialize, Serialize};
-use serde_with::serde_as;
+use serde::Deserialize;
 
 // region:	  --- User Date Types
 #[derive(Debug, Clone, Fields, FromSqliteRow)]
@@ -45,12 +42,11 @@ impl DbBmc for UserDateBmc {
 }
 
 impl UserDateBmc {
-    pub async fn create(ctx: &Ctx, mm: &ModelManager, date_c: UserDateForCreate) -> Result<i64> {
-        crud_fns::create::<Self, _>(ctx, mm, date_c).await
+    pub async fn create(mm: &ModelManager, date_c: UserDateForCreate) -> Result<i64> {
+        crud_fns::create::<Self, _>(mm, date_c).await
     }
 
     pub async fn create_multiple(
-        ctx: &Ctx,
         mm: &ModelManager,
         date_c_m: UserDateForCreateMulti,
     ) -> Result<Vec<i64>> {
@@ -63,15 +59,15 @@ impl UserDateBmc {
             })
             .collect();
 
-        crud_fns::create_multiple::<Self, _>(ctx, mm, plan_c_m).await
+        crud_fns::create_multiple::<Self, _>(mm, plan_c_m).await
     }
 
-    pub async fn get(ctx: &Ctx, mm: &ModelManager, id: i64) -> Result<UserDate> {
-        crud_fns::get::<Self, _>(ctx, mm, id).await
+    pub async fn get(mm: &ModelManager, id: i64) -> Result<UserDate> {
+        crud_fns::get::<Self, _>(mm, id).await
     }
 
-    pub async fn delete(ctx: &Ctx, mm: &ModelManager, id: i64) -> Result<()> {
-        crud_fns::delete::<Self>(ctx, mm, id).await
+    pub async fn delete(mm: &ModelManager, id: i64) -> Result<()> {
+        crud_fns::delete::<Self>(mm, id).await
     }
 }
 
@@ -97,22 +93,20 @@ mod tests {
     async fn test_create_user_date_ok() -> Result<()> {
         // -- Setup & Fixtures
         let mm = _dev_utils::init_test().await;
-        let ctx = Ctx::root_ctx();
 
         let fx_date = Date::from_calendar_date(2024, time::Month::September, 5)?;
 
         let fx_plan_id = PlanBmc::create(
-            &ctx,
             &mm,
             PlanForCreate {
                 name: "create_user_date".to_string(),
                 url_id: "create_user_date".to_string(),
-                description: None
+                description: None,
             },
-        ).await?;
+        )
+        .await?;
 
         let fx_user_id = UserBmc::create(
-            &ctx,
             &mm,
             UserForCreate {
                 plan_id: fx_plan_id,
@@ -123,38 +117,34 @@ mod tests {
 
         let date_c = UserDateForCreate {
             user_id: fx_user_id,
-            date: ModelDate::new(fx_date)
+            date: ModelDate::new(fx_date),
         };
 
         // -- Exec
-        let id = UserDateBmc::create(&ctx, &mm, date_c).await?;
+        let id = UserDateBmc::create(&mm, date_c).await?;
 
         // -- Check
-        let user_date = UserDateBmc::get(&ctx, &mm, id).await?;
+        let user_date = UserDateBmc::get(&mm, id).await?;
         assert_eq!(user_date.date.date(), fx_date);
-
 
         Ok(())
     }
-    
+
     #[tokio::test]
     async fn test_create_user_date_multiple_ok() -> Result<()> {
         // -- Setup & Fixtures
         let mm = _dev_utils::init_test().await;
-        let ctx = Ctx::root_ctx();
 
         let fx_plan_id = PlanBmc::create(
-            &ctx,
             &mm,
             PlanForCreate {
                 name: "create_multiple_user_date".to_string(),
                 url_id: "create_multiple_user_date".to_string(),
-                description: None
+                description: None,
             },
         )
         .await?;
         let fx_user_id = UserBmc::create(
-            &ctx,
             &mm,
             UserForCreate {
                 plan_id: fx_plan_id,
@@ -174,15 +164,15 @@ mod tests {
         };
 
         // -- Exec
-        let ids = UserDateBmc::create_multiple(&ctx, &mm, date_c_m).await?;
+        let ids = UserDateBmc::create_multiple(&mm, date_c_m).await?;
 
         // -- Check
         for id in ids.clone() {
-            UserDateBmc::get(&ctx, &mm, id).await?;
+            UserDateBmc::get(&mm, id).await?;
         }
 
         // -- Cleanup
-        PlanBmc::delete(&ctx, &mm, fx_plan_id).await?;
+        PlanBmc::delete(&mm, fx_plan_id).await?;
 
         Ok(())
     }

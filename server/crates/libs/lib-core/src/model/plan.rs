@@ -2,18 +2,12 @@ use modql::{
     field::{Fields, HasSeaFields},
     FromSqliteRow,
 };
-use rusqlite::Row;
 use sea_query::{Expr, Iden, Query, SqliteQueryBuilder};
 use sea_query_rusqlite::RusqliteBinder;
-use serde::Serialize;
-use serde_with::serde_as;
-
-use crate::{ctx::Ctx, model::user::UserBmc};
 
 use super::{
-    base::{self, crud_fns, DbBmc},
+    base::{crud_fns, DbBmc},
     fields::Timestamp,
-    user::UserDates,
     ModelManager,
 };
 use crate::model::{Error, Result};
@@ -54,27 +48,23 @@ impl DbBmc for PlanBmc {
 }
 
 impl PlanBmc {
-    pub async fn create(ctx: &Ctx, mm: &ModelManager, plan_c: PlanForCreate) -> Result<i64> {
-        crud_fns::create::<Self, _>(ctx, mm, plan_c).await
+    pub async fn create(mm: &ModelManager, plan_c: PlanForCreate) -> Result<i64> {
+        crud_fns::create::<Self, _>(mm, plan_c).await
     }
 
-    pub async fn create_return(
-        ctx: &Ctx,
-        mm: &ModelManager,
-        plan_c: PlanForCreate,
-    ) -> Result<Plan> {
-        crud_fns::create_return::<Self, _, _>(ctx, mm, plan_c).await
+    pub async fn create_return(mm: &ModelManager, plan_c: PlanForCreate) -> Result<Plan> {
+        crud_fns::create_return::<Self, _, _>(mm, plan_c).await
     }
 
-    pub async fn get(ctx: &Ctx, mm: &ModelManager, id: i64) -> Result<Plan> {
-        crud_fns::get::<Self, _>(ctx, mm, id).await
+    pub async fn get(mm: &ModelManager, id: i64) -> Result<Plan> {
+        crud_fns::get::<Self, _>(mm, id).await
     }
 
-    pub async fn delete(ctx: &Ctx, mm: &ModelManager, id: i64) -> Result<()> {
-        crud_fns::delete::<Self>(ctx, mm, id).await
+    pub async fn delete(mm: &ModelManager, id: i64) -> Result<()> {
+        crud_fns::delete::<Self>(mm, id).await
     }
 
-    pub async fn get_plan_by_url(_ctx: &Ctx, mm: &ModelManager, url_id: &str) -> Result<Plan> {
+    pub async fn get_plan_by_url(mm: &ModelManager, url_id: &str) -> Result<Plan> {
         let db = mm.db();
 
         // -- Build Query
@@ -117,7 +107,6 @@ mod tests {
     async fn test_plan_bmc_create_ok() -> Result<()> {
         // -- Setup & Fixtures
         let mm = _dev_utils::init_test().await;
-        let ctx = Ctx::root_ctx();
         let fx_plan_name = "plan_create_ok";
         let fx_plan_urlid = "planurl_create_ok";
         let fx_plan_description = "plan_description_create_ok";
@@ -128,13 +117,13 @@ mod tests {
         };
 
         // -- Exec
-        let id = PlanBmc::create(&ctx, &mm, plan_c.clone()).await?;
+        let id = PlanBmc::create(&mm, plan_c.clone()).await?;
         // -- Check
-        let plan = PlanBmc::get(&ctx, &mm, id).await?;
+        let plan = PlanBmc::get(&mm, id).await?;
         assert_eq!(fx_plan_name, plan.name);
 
         // -- Cleanup
-        PlanBmc::delete(&ctx, &mm, id).await?;
+        PlanBmc::delete(&mm, id).await?;
 
         Ok(())
     }
@@ -143,7 +132,6 @@ mod tests {
     async fn test_plan_bmc_create_return_ok() -> Result<()> {
         // -- Setup & Fixtures
         let mm = _dev_utils::init_test().await;
-        let ctx = Ctx::root_ctx();
         let fx_plan_name = "plan_create_return_ok";
         let fx_plan_urlid = "planurl_create_return_ok";
         let plan_c = PlanForCreate {
@@ -153,13 +141,13 @@ mod tests {
         };
 
         // -- Exec
-        let plan = PlanBmc::create_return(&ctx, &mm, plan_c).await?;
+        let plan = PlanBmc::create_return(&mm, plan_c).await?;
 
         // -- Check
         assert_eq!(fx_plan_name, plan.name);
 
         // -- Cleanup
-        PlanBmc::delete(&ctx, &mm, plan.id).await?;
+        PlanBmc::delete(&mm, plan.id).await?;
 
         Ok(())
     }
@@ -168,7 +156,7 @@ mod tests {
     async fn test_plan_bmc_by_url_ok() -> Result<()> {
         // -- Setup & Fixtures
         let mm = _dev_utils::init_test().await;
-        let ctx = Ctx::root_ctx();
+
         let fx_plan_name = "plan_url_ok";
         let fx_plan_urlid = "planurl_url_ok";
         let plan_c = PlanForCreate {
@@ -178,13 +166,13 @@ mod tests {
         };
 
         // -- Exec
-        let id = PlanBmc::create(&ctx, &mm, plan_c.clone()).await?;
+        let id = PlanBmc::create(&mm, plan_c.clone()).await?;
         // -- Check
-        let plan = PlanBmc::get_plan_by_url(&ctx, &mm, fx_plan_urlid).await?;
+        let plan = PlanBmc::get_plan_by_url(&mm, fx_plan_urlid).await?;
         assert_eq!(fx_plan_name, plan.name);
 
         // -- Cleanup
-        PlanBmc::delete(&ctx, &mm, id).await?;
+        PlanBmc::delete(&mm, id).await?;
 
         Ok(())
     }
@@ -193,24 +181,23 @@ mod tests {
     async fn test_plan_bmc_input_too_long_fail() -> Result<()> {
         // -- Setup & Fixtures
         let mm = _dev_utils::init_test().await;
-        let ctx = Ctx::root_ctx();
 
         // -- Exec
-        let result_name_too_long = PlanBmc::create(&ctx, &mm, PlanForCreate {
+        let result_name_too_long = PlanBmc::create( &mm, PlanForCreate {
             name: "This is a string input for the test. It serves as a demonstration of a text that exceeds the required length of 128 characters. 
             The purpose is to test how the system handles longer inputs and whether it correctly identifies them as being too long.".to_string(),
             url_id: "short".to_string(),
             description: None
         }).await;
 
-        let result_url_id_too_long = PlanBmc::create(&ctx, &mm, PlanForCreate {
+        let result_url_id_too_long = PlanBmc::create( &mm, PlanForCreate {
             name: "short".to_string(),
             url_id: "This is a string input for the test. It serves as a demonstration of a text that exceeds the required length of 128 characters. 
             The purpose is to test how the system handles longer inputs and whether it correctly identifies them as being too long.".to_string(),
             description: None
         }).await;
 
-        let result_description_too_long = PlanBmc::create(&ctx, &mm, PlanForCreate {
+        let result_description_too_long = PlanBmc::create( &mm, PlanForCreate {
             name: "short".to_string(),
             url_id: "short".to_string(),
             description: Some("

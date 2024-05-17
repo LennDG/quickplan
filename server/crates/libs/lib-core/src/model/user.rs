@@ -1,4 +1,9 @@
-use modql::{field::Fields, FromSqliteRow};
+use modql::{
+    field::{Fields, HasSeaFields},
+    FromSqliteRow,
+};
+use sea_query::{Expr, Iden, Query, SqliteQueryBuilder};
+use sea_query_rusqlite::RusqliteBinder;
 
 use super::{
     base::{crud_fns, DbBmc},
@@ -6,7 +11,7 @@ use super::{
     user_date::UserDate,
     ModelManager,
 };
-use crate::model::Result;
+use crate::model::{plan, Result};
 
 // region:	  --- User Types
 #[derive(Debug, Fields, Clone, FromSqliteRow)]
@@ -19,6 +24,11 @@ pub struct User {
 
     // -- Timestamps
     pub ctime: Timestamp,
+}
+
+#[derive(Iden)]
+pub enum UserIden {
+    PlanId,
 }
 
 #[derive(Fields)]
@@ -55,6 +65,26 @@ impl UserBmc {
 
     pub async fn delete(mm: &ModelManager, id: i64) -> Result<()> {
         crud_fns::delete::<Self>(mm, id).await
+    }
+
+    pub async fn get_users_for_plan(mm: &ModelManager, plan_id: i64) -> Result<Vec<User>> {
+        let db = mm.db();
+
+        // -- Build Query
+        let mut query = Query::select();
+        query
+            .from(Self::table_ref())
+            .columns(User::sea_column_refs())
+            .and_where(Expr::col(UserIden::PlanId).eq(plan_id));
+        let (sql, values) = query.build_rusqlite(SqliteQueryBuilder);
+
+        // -- Exec query
+        let db = db.lock().await;
+        let mut stmt = db.prepare(&sql)?;
+        let users: Vec<User> = stmt
+            .query_and_then(&*values.as_params(), User::from_sqlite_row)?
+            .collect();
+        todo!()
     }
 }
 

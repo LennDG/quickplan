@@ -91,15 +91,13 @@ where
         .into_table(MC::table_ref())
         .returning_col(CommonIden::Id);
 
-    let columns: Vec<SeaRc<dyn Iden>> = Vec::new();
-
     for d in data {
         // -- Extract fields (name / sea-query value expression)
         let mut fields = d.not_none_sea_fields();
         prep_fields_for_create::<MC>(&mut fields);
         let (columns, sea_values) = fields.for_sea_insert();
         query.columns(columns);
-        query.values(sea_values);
+        let _ = query.values(sea_values);
     }
 
     let (sql, values) = query.build_rusqlite(SqliteQueryBuilder);
@@ -117,7 +115,7 @@ where
 }
 
 // pub async fn create_multiple_return<MC, E, T>(
-//     _ctx: 
+//     _ctx:
 //     mm: &ModelManager,
 //     data: Vec<E>,
 // ) -> Result<Vec<T>>

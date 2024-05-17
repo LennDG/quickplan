@@ -1,4 +1,3 @@
-use serde::{Deserialize, Serialize};
 use time::{Date, Month, Weekday};
 
 fn get_dates_for_month(month: Month, year: i32) -> Vec<Date> {
@@ -12,7 +11,7 @@ fn get_dates_for_month(month: Month, year: i32) -> Vec<Date> {
 // This adds the dates of the previous and next months until
 // the first day is a monday and the last day a sunday
 // for fitting on the calendar
-fn pad_dates(mut dates: Vec<Date>) -> Vec<Date> {
+fn pad_dates(dates: Vec<Date>) -> Vec<Date> {
     if dates.is_empty() {
         return dates;
     }

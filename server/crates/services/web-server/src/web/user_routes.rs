@@ -44,11 +44,12 @@ async fn create_user_handler(
 
         return Ok(too_long_response);
     }
+    // Check if plan exists
+    let plan = PlanBmc::get_plan_by_url(&mm, &page_slug).await?;
+
     // TODO: Check if the name already exists for the plan
 
     // -- Creation
-    let plan = PlanBmc::get_plan_by_url(&mm, &page_slug).await?;
-
     UserBmc::create(
         &mm,
         UserForCreate {

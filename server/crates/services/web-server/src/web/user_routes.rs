@@ -37,7 +37,7 @@ async fn create_user_handler(
 
     // -- Setup ctx
     // -- Validation
-    // Check if name length is not too long
+    // Check if name length is not too long (saves a trip to the DB)
     if new_user.username.len() > 128 {
         let mut too_long_response = Response::new(Body::empty());
         *too_long_response.status_mut() = StatusCode::BAD_REQUEST;
@@ -47,7 +47,8 @@ async fn create_user_handler(
     // Check if plan exists
     let plan = PlanBmc::get_plan_by_url(&mm, &page_slug).await?;
 
-    // TODO: Check if the name already exists for the plan
+    // Check if the name already exists for the plan
+    // Not necessary since the DB does this check.
 
     // -- Creation
     UserBmc::create(

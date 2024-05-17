@@ -11,7 +11,7 @@ use super::{
     user_date::UserDate,
     ModelManager,
 };
-use crate::model::{plan, Result};
+use crate::model::{plan, Error, Result};
 
 // region:	  --- User Types
 #[derive(Debug, Fields, Clone, FromSqliteRow)]
@@ -81,10 +81,11 @@ impl UserBmc {
         // -- Exec query
         let db = db.lock().await;
         let mut stmt = db.prepare(&sql)?;
-        let users: Vec<User> = stmt
+        let users: Result<Vec<User>> = stmt
             .query_and_then(&*values.as_params(), User::from_sqlite_row)?
+            .map(|user_result| user_result.map_err(Error::Rusqlite))
             .collect();
-        todo!()
+        users
     }
 }
 
@@ -159,6 +160,49 @@ mod tests {
 
         // -- Check
         assert!(result_user_name_too_long.is_err());
+
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn test_user_bmc_get_users_for_plan_ok() -> Result<()> {
+        // -- Setup & Fixtures
+        let mm = _dev_utils::init_test().await;
+        let fx_plan_name = "plan_get_users_ok";
+        let fx_plan_urlid = "plan_get_users_ok";
+        let plan_c = PlanForCreate {
+            name: fx_plan_name.to_string(),
+            url_id: fx_plan_urlid.to_string(),
+            description: None,
+        };
+
+        let fx_user_1 = "user_1";
+        let fx_user_2 = "user_2";
+        let fx_user_3 = "user_3";
+
+        // -- Exec
+        let plan_id = PlanBmc::create(&mm, plan_c).await?;
+
+        let user_c_1 = UserForCreate {
+            plan_id,
+            name: fx_user_1.to_string(),
+        };
+        let user_c_2 = UserForCreate {
+            plan_id,
+            name: fx_user_2.to_string(),
+        };
+        let user_c_3 = UserForCreate {
+            plan_id,
+            name: fx_user_3.to_string(),
+        };
+
+        UserBmc::create(&mm, user_c_1).await?;
+        UserBmc::create(&mm, user_c_2).await?;
+        UserBmc::create(&mm, user_c_3).await?;
+
+        let users = UserBmc::get_users_for_plan(&mm, plan_id).await?;
+
+        assert_eq!(users.len(), 3);
 
         Ok(())
     }

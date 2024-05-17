@@ -7,7 +7,8 @@
 <div>
     <h1>Pick The Day</h1>
     <p>Create a meetup!</p>
-    <div class="container relative z-0 mx-auto flex max-w-80 justify-center space-x-4">
+
+    <form class="container relative z-0 mx-auto flex max-w-80 justify-center space-x-4">
         <div>
             <input type="text" id="new_plan" name="new_plan"
                 class="border-1 peer block w-full appearance-none rounded-lg border border-gray-600 bg-transparent px-2 py-2.5 text-sm text-white outline-none focus:border-gray-300 "
@@ -15,7 +16,7 @@
         </div>
         <button type="submit" hx-post="/plan" hx-include="#new_plan"
             class="mb-2 me-2 flex rounded-lg border-gray-700 bg-gray-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-gray-700">Create</button>
-    </div>
+    </form>
     <a href="/about">About</a>
 </div>
 

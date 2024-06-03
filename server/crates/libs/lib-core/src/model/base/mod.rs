@@ -29,4 +29,8 @@ pub trait DbBmc {
     fn has_creation_timestamp() -> bool {
         true
     }
+
+    fn has_web_id() -> bool {
+        false
+    }
 }

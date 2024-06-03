@@ -12,6 +12,7 @@ CREATE INDEX idx_plan_url_id ON plan(url_id);
 CREATE TABLE plan_user (
     -- Relations
     id INTEGER PRIMARY KEY AUTOINCREMENT,
+    web_id TEXT NOT NULL, -- ID to use on the web, don't expose autoincrements
     plan_id INTEGER,
     name TEXT NOT NULL CHECK (length(name) <= 128),
 

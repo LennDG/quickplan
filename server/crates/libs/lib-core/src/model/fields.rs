@@ -74,3 +74,37 @@ impl From<ModelDate> for sea_query::Value {
     }
 }
 // endregion: --- ModelDate
+
+// region:	  --- UUID
+pub struct WebId(uuid::Uuid);
+
+#[derive(Iden)]
+pub enum WebIdIden {
+    WebId,
+}
+
+impl WebId {
+    pub fn new(uuid: uuid::Uuid) -> Self {
+        Self(uuid)
+    }
+}
+
+impl FromSql for WebId {
+    fn column_result(value: rusqlite::types::ValueRef<'_>) -> rusqlite::types::FromSqlResult<Self> {
+        match value {
+            rusqlite::types::ValueRef::Text(t) => {
+                let uuid = uuid::Uuid::from_slice(t).map_err(|_| FromSqlError::InvalidType)?;
+                Ok(Self(uuid))
+            }
+            _ => Err(FromSqlError::InvalidType),
+        }
+    }
+}
+
+impl From<WebId> for sea_query::Value {
+    fn from(WebId(uuid): WebId) -> Self {
+        sea_query::Value::String(Some(Box::new(uuid.to_string())))
+    }
+}
+
+// endregion: --- UUID

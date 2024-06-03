@@ -26,7 +26,7 @@ modql = { version = "0.4.0-rc", features = ["with-sea-query", "with-rusqlite"] }
 # -- Tracing
 tracing = "0.1"
 # -- Others
-uuid = { version = "1", features = ["v4", "fast-rng"] }
+uuid = { version = "1", features = ["v4", "v7", "fast-rng"] }
 time = { version = "0.3", features = ["formatting", "parsing", "serde"] }
 derive_more = { workspace = true }
 include_dir = "0.7.3"

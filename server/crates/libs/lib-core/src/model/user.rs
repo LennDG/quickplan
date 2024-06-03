@@ -48,6 +48,10 @@ pub struct UserBmc;
 
 impl DbBmc for UserBmc {
     const TABLE: &'static str = "plan_user";
+
+    fn has_web_id() -> bool {
+        true
+    }
 }
 
 impl UserBmc {

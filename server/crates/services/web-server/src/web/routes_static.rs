@@ -1,5 +1,4 @@
 use crate::web_config;
-use axum::extract::OriginalUri;
 use axum::handler::HandlerWithoutStateExt;
 use axum::http::{StatusCode, Uri};
 use axum::response::{IntoResponse, Response};

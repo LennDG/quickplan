@@ -62,7 +62,7 @@ async fn create_plan_handler(
         "{:<12} - create_plan_handler - {}",
         "HANDLER", new_plan.new_plan
     );
-    // -- Check if name length is not too long
+    // -- Check if name length is not too long (saves a DB trip)
     if new_plan.new_plan.len() > 128 {
         let mut too_long_response = Response::new(Body::empty());
         *too_long_response.status_mut() = StatusCode::BAD_REQUEST;
@@ -84,7 +84,8 @@ async fn create_plan_handler(
     )
     .await?;
 
-    // -- Add the HX-Push-Url header to switch out the URL.
+    // -- Add the HX-Redirect header to redirect to different page.
+    // TODO: Is there a more "HTML" friendly way to do this?
     let mut plan_response = Response::new(Body::empty());
     plan_response.headers_mut().append(
         "HX-Redirect",
@@ -117,7 +118,7 @@ async fn toggle_date_handler(
         "HANDLER", page_slug, toggle_date.date
     );
 
-    // --
+    // -- Toggle date in the plan
 
     Ok(test_response("nothing"))
 }

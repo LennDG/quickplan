@@ -23,7 +23,7 @@
         <div class="col-span-7 border-b-2 border-gray-400"></div>
         {% for week in calendar.weeks %}
         {% for date in week %}
-        <button hx-post name="date" value="{{ date }}" hx-include="#user, #plan_id" type="submit"
+        <button hx-post name="date" value="{{ date }}" hx-include="#user_id" type="submit"
             class="ring-gray-400 hover:ring-1 h-12 {% if date.month() != calendar.month %}text-gray-500{% else %}text-white{% endif %}">
             {{ date.day() }}
         </button>

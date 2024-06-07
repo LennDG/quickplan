@@ -27,7 +27,7 @@ tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 # -- Others
 time = { version = "0.3", features = ["serde"] }
-uuid = { version = "1", features = ["v4", "fast-rng"] }
+uuid = { version = "1", features = ["v4", "v7", "fast-rng", "serde"] }
 strum_macros = "0.26"
 derive_more = { workspace = true }
 

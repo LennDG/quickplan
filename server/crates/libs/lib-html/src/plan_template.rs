@@ -1,6 +1,7 @@
 use ::time::{Date, Month};
 use askama::Template;
 use axum::response::{IntoResponse, Response};
+use lib_core::model::fields::WebId;
 use lib_core::model::plan::Plan;
 use lib_utils::time::current_date;
 
@@ -83,6 +84,7 @@ impl Calendar {
 #[template(path = "user_created_response.html")]
 struct UserCreatedResponseTemplate {
     username: String,
+    user_id: WebId,
 }
 // endregion: --- User structs
 
@@ -98,7 +100,7 @@ pub fn calendar_div(month: Month, year: i32) -> Response {
     .into_response()
 }
 
-pub fn user_created_div(username: String) -> Response {
-    UserCreatedResponseTemplate { username }.into_response()
+pub fn user_created_div(username: String, user_id: WebId) -> Response {
+    UserCreatedResponseTemplate { username, user_id }.into_response()
 }
 // endregion: --- Plan page

@@ -51,16 +51,16 @@ async fn create_user_handler(
     // Not necessary since the DB does this check.
 
     // -- Creation
-    UserBmc::create(
+    let user = UserBmc::create_return(
         &mm,
         UserForCreate {
-            name: new_user.username.clone(),
+            name: new_user.username,
             plan_id: plan.id,
         },
     )
     .await?;
 
-    Ok(user_created_div(new_user.username))
+    Ok(user_created_div(user.name, user.web_id))
 }
 
 // endregion: --- User creation

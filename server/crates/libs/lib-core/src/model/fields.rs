@@ -1,7 +1,10 @@
+use std::str::FromStr;
+
+use derive_more::Display;
 use lib_utils::time::{format_time, now_utc};
 use rusqlite::types::{FromSql, FromSqlError};
 use sea_query::Iden;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use time::{macros::format_description, Date, OffsetDateTime};
 
 // region:	  --- Timestamp
@@ -41,7 +44,7 @@ impl From<Timestamp> for sea_query::Value {
 // endregion: --- Timestamp
 
 // region:	  --- ModelDate
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Copy, Deserialize)]
 pub struct ModelDate(Date);
 
 impl ModelDate {
@@ -73,9 +76,16 @@ impl From<ModelDate> for sea_query::Value {
         sea_query::Value::String(Some(Box::new(date.to_string())))
     }
 }
+
+impl From<Date> for ModelDate {
+    fn from(date: Date) -> Self {
+        Self::new(date)
+    }
+}
 // endregion: --- ModelDate
 
 // region:	  --- UUID
+#[derive(Debug, Display, Deserialize, Serialize, Clone, Copy)]
 pub struct WebId(uuid::Uuid);
 
 #[derive(Iden)]
@@ -93,7 +103,8 @@ impl FromSql for WebId {
     fn column_result(value: rusqlite::types::ValueRef<'_>) -> rusqlite::types::FromSqlResult<Self> {
         match value {
             rusqlite::types::ValueRef::Text(t) => {
-                let uuid = uuid::Uuid::from_slice(t).map_err(|_| FromSqlError::InvalidType)?;
+                let s = std::str::from_utf8(t).map_err(|_| FromSqlError::InvalidType)?;
+                let uuid = uuid::Uuid::from_str(s).map_err(|_| FromSqlError::InvalidType)?;
                 Ok(Self(uuid))
             }
             _ => Err(FromSqlError::InvalidType),

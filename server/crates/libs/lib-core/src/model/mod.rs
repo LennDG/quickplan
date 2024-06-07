@@ -12,9 +12,9 @@
 // region:    --- Modules
 mod base;
 mod error;
-mod fields;
 mod store;
 
+pub mod fields;
 pub mod plan;
 pub mod user;
 pub mod user_date;

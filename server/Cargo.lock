@@ -2193,6 +2193,7 @@ dependencies = [
  "atomic",
  "getrandom",
  "rand",
+ "serde",
 ]
 
 [[package]]

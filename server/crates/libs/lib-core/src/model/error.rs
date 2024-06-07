@@ -2,7 +2,7 @@ use derive_more::From;
 use serde::Serialize;
 use serde_with::{serde_as, DisplayFromStr};
 
-use super::store;
+use super::{fields::WebId, store};
 
 pub type Result<T> = core::result::Result<T, Error>;
 
@@ -16,6 +16,10 @@ pub enum Error {
 
     PlanUrlNotFound {
         url_id: String,
+    },
+
+    UserWebIdNotFound {
+        web_id: WebId,
     },
 
     // -- Modules

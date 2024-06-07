@@ -7,11 +7,11 @@ use sea_query_rusqlite::RusqliteBinder;
 
 use super::{
     base::{crud_fns, DbBmc},
-    fields::Timestamp,
+    fields::{Timestamp, WebId},
     user_date::UserDate,
     ModelManager,
 };
-use crate::model::{plan, Error, Result};
+use crate::model::{Error, Result};
 
 // region:	  --- User Types
 #[derive(Debug, Fields, Clone, FromSqliteRow)]
@@ -21,6 +21,7 @@ pub struct User {
 
     // -- Properties
     pub name: String,
+    pub web_id: WebId,
 
     // -- Timestamps
     pub ctime: Timestamp,
@@ -29,6 +30,7 @@ pub struct User {
 #[derive(Iden)]
 pub enum UserIden {
     PlanId,
+    WebId,
 }
 
 #[derive(Fields)]
@@ -69,6 +71,28 @@ impl UserBmc {
 
     pub async fn delete(mm: &ModelManager, id: i64) -> Result<()> {
         crud_fns::delete::<Self>(mm, id).await
+    }
+
+    pub async fn get_user_with_web_id(mm: &ModelManager, web_id: WebId) -> Result<User> {
+        let db = mm.db();
+
+        // -- Build Query
+        let mut query = Query::select();
+        query
+            .from(Self::table_ref())
+            .columns(User::sea_column_refs())
+            .and_where(Expr::col(UserIden::WebId).eq(web_id));
+        let (sql, values) = query.build_rusqlite(SqliteQueryBuilder);
+
+        // -- Exec query
+        let db = db.lock().await;
+        let mut stmt = db.prepare(&sql)?;
+        let user = stmt
+            .query_and_then(&*values.as_params(), User::from_sqlite_row)?
+            .next()
+            .ok_or_else(|| Error::UserWebIdNotFound { web_id })?;
+
+        Ok(user?)
     }
 
     pub async fn get_users_for_plan(mm: &ModelManager, plan_id: i64) -> Result<Vec<User>> {
@@ -132,6 +156,8 @@ mod tests {
         // -- Check
         let user = UserBmc::get(&mm, user_id).await?;
         assert_eq!(fx_user_name, user.name);
+
+        let web_id = user.web_id;
 
         // -- Cleanup
         PlanBmc::delete(&mm, plan_id).await?;

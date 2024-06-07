@@ -4,10 +4,13 @@ use ::time::{Date, Month};
 use axum::body::Body;
 use axum::extract::{Path, Query, State};
 use axum::http::{HeaderValue, StatusCode, Uri};
-use axum::response::Response;
+use axum::response::{IntoResponse, Response};
 use axum::routing::{get, post};
 use axum::{Form, Router};
+use lib_core::model::fields::WebId;
 use lib_core::model::plan::{PlanBmc, PlanForCreate};
+use lib_core::model::user::UserBmc;
+use lib_core::model::user_date::{UserDateBmc, UserDateForCreate};
 use lib_core::model::ModelManager;
 use lib_html::plan_template::{calendar_div, plan_page};
 use lib_html::test_response;
@@ -22,7 +25,9 @@ pub fn routes(mm: ModelManager) -> Router {
             .route("/calendar", get(calendar_month_selection_handler))
             .nest(
                 "/:plan_slug",
-                Router::new().route("/", get(plan_page_handler).post(toggle_date_handler)),
+                Router::new()
+                    .route("/", get(plan_page_handler))
+                    .route("/", post(toggle_date_handler)),
             )
             .with_state(mm),
     )
@@ -104,7 +109,7 @@ async fn create_plan_handler(
 struct ToggleUserDate {
     #[serde(with = "date_format")]
     date: Date,
-    user: String,
+    user_id: WebId,
 }
 
 async fn toggle_date_handler(
@@ -113,11 +118,23 @@ async fn toggle_date_handler(
     Form(toggle_user_date): Form<ToggleUserDate>,
 ) -> Result<Response> {
     debug!(
-        "{:<12} - toggle_date_handler - {} - {}",
-        "HANDLER", page_slug, toggle_user_date.date
+        "{:<12} - toggle_date_handler - {} - {} - {} ",
+        "HANDLER", page_slug, toggle_user_date.date, toggle_user_date.user_id
     );
 
-    // -- Toggle date in the plan
+    // -- Toggle date for the user
+    let user = UserBmc::get_user_with_web_id(&mm, toggle_user_date.user_id).await?;
+    let date_c = UserDateForCreate {
+        date: toggle_user_date.date.into(),
+        user_id: user.id,
+    };
+
+    let user_date_id = UserDateBmc::get_date(&mm, date_c.clone()).await?;
+    if let Some(id) = user_date_id {
+        UserDateBmc::delete(&mm, id).await?;
+    } else {
+        UserDateBmc::create(&mm, date_c).await?;
+    }
 
     Ok(test_response("nothing"))
 }

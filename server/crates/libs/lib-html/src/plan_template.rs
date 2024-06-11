@@ -24,7 +24,12 @@ impl From<Plan> for PlanTemplate {
         PlanTemplate {
             title: plan.name.clone(),
             plan_name: plan.name,
-            calendar: Calendar::new(current_date().month(), current_date().year()),
+            calendar: Calendar::new(
+                current_date().month(),
+                current_date().year(),
+                vec![],
+                vec![],
+            ),
             description: plan.description.unwrap_or_default(),
             plan_id: plan.url_id,
             users: vec![],
@@ -43,7 +48,8 @@ struct CalendarTemplate {
 struct Calendar {
     current_date: Date,
     weeks: Vec<Vec<Date>>,
-    selected_dates: Vec<Date>,
+    plan_selected_dates: Vec<Date>,
+    user_selected_dates: Vec<Date>,
     month: Month,
     year: i32,
     next_month: String,
@@ -53,7 +59,12 @@ struct Calendar {
 }
 
 impl Calendar {
-    fn new(month: Month, year: i32) -> Self {
+    fn new(
+        month: Month,
+        year: i32,
+        plan_selected_dates: Vec<Date>,
+        user_selected_dates: Vec<Date>,
+    ) -> Self {
         let weeks = calender_month_dates(month, year)
             .chunks(7)
             .map(|week| week.into())
@@ -72,7 +83,8 @@ impl Calendar {
             prev_year,
             month,
             year,
-            selected_dates: vec![],
+            user_selected_dates,
+            plan_selected_dates,
         }
     }
 }
@@ -93,9 +105,14 @@ pub fn plan_page(plan: Plan) -> Response {
     PlanTemplate::from(plan).into_response()
 }
 
-pub fn calendar_div(month: Month, year: i32) -> Response {
+pub fn calendar_div(
+    month: Month,
+    year: i32,
+    plan_selected_dates: Vec<Date>,
+    user_selected_dates: Vec<Date>,
+) -> Response {
     CalendarTemplate {
-        calendar: Calendar::new(month, year),
+        calendar: Calendar::new(month, year, plan_selected_dates, user_selected_dates),
     }
     .into_response()
 }

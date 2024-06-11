@@ -122,13 +122,14 @@ async fn toggle_date_handler(
         "HANDLER", page_slug, toggle_user_date.date, toggle_user_date.user_id
     );
 
-    // -- Toggle date for the user
+    // -- Get the internal user id
     let user = UserBmc::get_user_with_web_id(&mm, toggle_user_date.user_id).await?;
     let date_c = UserDateForCreate {
         date: toggle_user_date.date.into(),
         user_id: user.id,
     };
 
+    // -- Toggle the date
     let user_date_id = UserDateBmc::get_date(&mm, date_c.clone()).await?;
     if let Some(id) = user_date_id {
         UserDateBmc::delete(&mm, id).await?;
@@ -157,6 +158,11 @@ async fn calendar_month_selection_handler(
         "HANDLER", plan_calendar.plan_id, plan_calendar.month, plan_calendar.year
     );
 
-    Ok(calendar_div(plan_calendar.month, plan_calendar.year))
+    Ok(calendar_div(
+        plan_calendar.month,
+        plan_calendar.year,
+        vec![],
+        vec![],
+    ))
 }
 // endregion: --- Calendar operations
